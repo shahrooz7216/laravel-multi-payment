@@ -1,0 +1,37 @@
+{
+    "name": "omalizadeh/laravel-multi-payment",
+    "description": "A driver-based laravel package for online payments via multiple gateways",
+    "homepage": "https://github.com/omalizadeh/laravel-multi-payment",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "payment",
+        "shetab",
+        "gateway",
+        "online payment",
+        "bank"
+    ],
+    "authors": [
+        {
+            "name": "Omid Alizadeh",
+            "email": "om.alizadeh1@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Omalizadeh\\MultiPayment\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Omalizadeh\\MultiPayment\\Providers\\MultiPaymentServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^7.4|^8.0",
+        "laravel/framework": "^7.0|^8.0"
+    },
+    "minimum-stability": "stable"
+}
