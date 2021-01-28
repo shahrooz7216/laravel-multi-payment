@@ -3,19 +3,17 @@
 namespace Omalizadeh\MultiPayment;
 
 use Ramsey\Uuid\Uuid;
-use Exception;
+use InvalidArgumentException;
 
 class Invoice
 {
     protected $uuid;
     protected $amount;
     protected $transactionId;
-    protected string $driverName;
-    protected string $appName;
 
     public function __construct($amount)
     {
-        $this->amount = $amount ?? 0;
+        $this->setAmount($amount);
         $this->uuid = Uuid::uuid4()->toString();
     }
 
@@ -27,7 +25,7 @@ class Invoice
     public function setAmount($amount)
     {
         if (!is_numeric($amount)) {
-            throw new Exception('Invoice amount must be an numeric.');
+            throw new InvalidArgumentException('Invoice amount must be a numeric value.');
         }
         if (config('online-payment.convert_to_rials')) {
             $this->amount = $amount * 10;

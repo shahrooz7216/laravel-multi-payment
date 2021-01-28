@@ -25,36 +25,28 @@ class OnlinePayment
         $this->setSettings();
     }
 
-    // public function purchase(Invoice $invoice = null, $finalizeCallback = null)
-    // {
-    //     if ($invoice) { // create new invoice
-    //         $this->invoice($invoice);
-    //     }
+    public function purchase()
+    {
+        $transactionId = $this->driver->purchase();
+        if ($finalizeCallback) {
+            call_user_func_array($finalizeCallback, [$this->driver, $transactionId]);
+        }
 
-    //     $this->driverInstance = $this->getFreshDriverInstance();
+        // $this->dispatchEvent(
+        //     'purchase',
+        //     $this->driver,
+        //     $this->driver->getInvoice()
+        // );
 
-    //     //purchase the invoice
-    //     $transactionId = $this->driverInstance->purchase();
-    //     if ($finalizeCallback) {
-    //         call_user_func_array($finalizeCallback, [$this->driverInstance, $transactionId]);
-    //     }
-
-    //     // dispatch event
-    //     $this->dispatchEvent(
-    //         'purchase',
-    //         $this->driverInstance,
-    //         $this->driverInstance->getInvoice()
-    //     );
-
-    //     return $this;
-    // }
+        return $this;
+    }
 
     // public function pay($initializeCallback = null)
     // {
-    //     $this->driverInstance = $this->getDriverInstance();
+    //     $this->driver = $this->getDriverInstance();
 
     //     if ($initializeCallback) {
-    //         call_user_func($initializeCallback, $this->driverInstance);
+    //         call_user_func($initializeCallback, $this->driver);
     //     }
 
     //     $this->validateInvoice();
@@ -62,29 +54,29 @@ class OnlinePayment
     //     // dispatch event
     //     $this->dispatchEvent(
     //         'pay',
-    //         $this->driverInstance,
-    //         $this->driverInstance->getInvoice()
+    //         $this->driver,
+    //         $this->driver->getInvoice()
     //     );
 
-    //     return $this->driverInstance->pay();
+    //     return $this->driver->pay();
     // }
 
     // public function verify($finalizeCallback = null): ReceiptInterface
     // {
-    //     $this->driverInstance = $this->getDriverInstance();
+    //     $this->driver = $this->getDriverInstance();
     //     $this->validateInvoice();
-    //     $receipt = $this->driverInstance->verify();
+    //     $receipt = $this->driver->verify();
 
     //     if (!empty($finalizeCallback)) {
-    //         call_user_func($finalizeCallback, $receipt, $this->driverInstance);
+    //         call_user_func($finalizeCallback, $receipt, $this->driver);
     //     }
 
     //     // dispatch event
     //     $this->dispatchEvent(
     //         'verify',
     //         $receipt,
-    //         $this->driverInstance,
-    //         $this->driverInstance->getInvoice()
+    //         $this->driver,
+    //         $this->driver->getInvoice()
     //     );
 
     //     return $receipt;
@@ -99,7 +91,7 @@ class OnlinePayment
     {
         $this->validateDriver();
         $class = config($this->getDriverNamespaceConfigKey());
-        $this->driver = new $class();
+        $this->driver = new $class($this->invoice, $this->settings);
     }
 
     protected function validateDriver()
