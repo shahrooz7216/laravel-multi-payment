@@ -16,13 +16,13 @@ class OnlinePayment
     protected Invoice $invoice;
     protected DriverInterface $driver;
 
-    public function __construct(Invoice $invoice, ?string $driverName, ?string $appName)
+    public function __construct(Invoice $invoice, string $driverName = null, string $appName = null)
     {
-        $this->setInvoice($invoice);
+        $this->invoice = $invoice;
         $this->setDriverName($driverName ?? config('online-payment.default_driver'));
         $this->setAppName($appName ?? config('online-payment.default_app'));
-        $this->setDriver();
         $this->setSettings();
+        $this->setDriver();
     }
 
     public function purchase(): string
