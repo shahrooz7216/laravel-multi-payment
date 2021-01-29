@@ -2,7 +2,7 @@
 
 namespace Omalizadeh\MultiPayment\Exceptions;
 
-class InvalidInputDataException extends Exception
+class PurchaseFailedException extends Exception
 {
     //
 }

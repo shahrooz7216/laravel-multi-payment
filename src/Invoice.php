@@ -7,19 +7,17 @@ use InvalidArgumentException;
 
 class Invoice
 {
-    protected $uuid;
     protected $amount;
-    protected $transactionId;
+    protected string $uuid;
+    protected string $email;
+    protected string $description;
+    protected string $phoneNumber;
+    protected string $transactionId;
 
     public function __construct($amount)
     {
         $this->setAmount($amount);
         $this->uuid = Uuid::uuid4()->toString();
-    }
-
-    public function getUuid()
-    {
-        return $this->uuid;
     }
 
     public function setAmount($amount)
@@ -35,19 +33,66 @@ class Invoice
         return $this;
     }
 
-    public function getAmount()
-    {
-        return $this->amount;
-    }
-
-    public function setTransactionId($id)
+    public function setTransactionId(string $id)
     {
         $this->transactionId = $id;
         return $this;
     }
 
+    public function setDescription(string $description)
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+    public function setPhoneNumber(string $phone)
+    {
+        $this->phoneNumber = $phone;
+        return $this;
+    }
+
+    public function setEmail(string $email)
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+    public function getUuid()
+    {
+        return $this->uuid;
+    }
+
     public function getTransactionId()
     {
         return $this->transactionId;
+    }
+
+    public function getPhoneNumber()
+    {
+        return $this->phoneNumber;
+    }
+
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    public function getCustomerInfo()
+    {
+        return [
+            'phone' => $this->getPhoneNumber(),
+            'email' => $this->getEmail(),
+            'description' => $this->getDescription()
+        ];
     }
 }

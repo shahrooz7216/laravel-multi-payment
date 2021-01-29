@@ -25,73 +25,21 @@ class OnlinePayment
         $this->setSettings();
     }
 
-    public function purchase()
+    public function purchase(): string
     {
-        $transactionId = $this->driver->purchase();
-        if ($finalizeCallback) {
-            call_user_func_array($finalizeCallback, [$this->driver, $transactionId]);
-        }
-
-        // $this->dispatchEvent(
-        //     'purchase',
-        //     $this->driver,
-        //     $this->driver->getInvoice()
-        // );
-
-        return $this;
+        return $this->driver->purchase();
     }
 
-    // public function pay($initializeCallback = null)
-    // {
-    //     $this->driver = $this->getDriverInstance();
-
-    //     if ($initializeCallback) {
-    //         call_user_func($initializeCallback, $this->driver);
-    //     }
-
-    //     $this->validateInvoice();
-
-    //     // dispatch event
-    //     $this->dispatchEvent(
-    //         'pay',
-    //         $this->driver,
-    //         $this->driver->getInvoice()
-    //     );
-
-    //     return $this->driver->pay();
-    // }
-
-    // public function verify($finalizeCallback = null): ReceiptInterface
-    // {
-    //     $this->driver = $this->getDriverInstance();
-    //     $this->validateInvoice();
-    //     $receipt = $this->driver->verify();
-
-    //     if (!empty($finalizeCallback)) {
-    //         call_user_func($finalizeCallback, $receipt, $this->driver);
-    //     }
-
-    //     // dispatch event
-    //     $this->dispatchEvent(
-    //         'verify',
-    //         $receipt,
-    //         $this->driver,
-    //         $this->driver->getInvoice()
-    //     );
-
-    //     return $receipt;
-    // }
-
-    protected function getDriver()
+    public function pay()
     {
-        return $this->driver;
+        return $this->driver->pay();
     }
 
-    protected function setDriver()
+    public function verify(): Receipt
     {
-        $this->validateDriver();
-        $class = config($this->getDriverNamespaceConfigKey());
-        $this->driver = new $class($this->invoice, $this->settings);
+        $refId = $this->driver->verify();
+
+        return new Receipt($refId, $this->invoice, $this->driverName, $this->appName);
     }
 
     protected function validateDriver()
@@ -124,6 +72,13 @@ class OnlinePayment
         return 'online-payment.aliases.' . $this->getDriverName();
     }
 
+    protected function setDriver()
+    {
+        $this->validateDriver();
+        $class = config($this->getDriverNamespaceConfigKey());
+        $this->driver = new $class($this->invoice, $this->settings);
+    }
+
     protected function setSettings()
     {
         $this->settings = config($this->getSettingsConfigKey());
@@ -135,15 +90,20 @@ class OnlinePayment
         return $this;
     }
 
-    public function getDriverName()
-    {
-        return $this->driverName;
-    }
-
     public function setAppName(string $appName)
     {
         $this->appName = $appName;
         return $this;
+    }
+
+    protected function getDriver()
+    {
+        return $this->driver;
+    }
+
+    public function getDriverName()
+    {
+        return $this->driverName;
     }
 
     public function getAppName()

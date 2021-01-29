@@ -2,7 +2,7 @@
 
 namespace Omalizadeh\MultiPayment\Exceptions;
 
-class PurchaseCanceledByCustomerException extends Exception
+class PaymentFailedException extends Exception
 {
     //
 }
