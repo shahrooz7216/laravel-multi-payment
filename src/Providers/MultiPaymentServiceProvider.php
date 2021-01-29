@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment;
+namespace Omalizadeh\MultiPayment\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
