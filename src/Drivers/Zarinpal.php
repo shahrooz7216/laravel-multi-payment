@@ -31,7 +31,7 @@ class Zarinpal extends Driver
         $client = new SoapClient($this->getPurchaseUrl(), ['encoding' => 'UTF-8']);
         $result = $client->PaymentRequest($data);
         if ($result->Status != $this->getResponseSuccessStatusCode() || empty($result->Authority)) {
-            $message = $this->translateStatus($result->Status);
+            $message = $this->getStatusMessage($result->Status);
             throw new PurchaseFailedException($message, $result->Status);
         }
         $this->invoice->setTransactionId($result->Authority);
@@ -67,7 +67,7 @@ class Zarinpal extends Driver
         $client = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
         $result = $client->PaymentVerification($data);
         if ($result->Status != $this->getResponseSuccessStatusCode()) {
-            $message = $this->translateStatus($result->Status);
+            $message = $this->getStatusMessage($result->Status);
             throw new PaymentFailedException($message, $result->Status);
         }
 
