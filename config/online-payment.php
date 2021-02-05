@@ -4,7 +4,7 @@ return [
     'default_driver' => 'zarinpal',
     'default_app' => 'my_app_name',
 
-    'convert_to_rials' => true,
+    'convert_to_rials' => true, // set to false if your in-app currency is IRR
 
     'my_app_name' => [
         'behpardakht' => [],
