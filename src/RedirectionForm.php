@@ -30,24 +30,27 @@ class RedirectionForm
         return $this->action;
     }
 
-    public function render()
+    public function getData(): array
     {
-        $data = [
+        return [
             "action" => $this->getAction(),
             "inputs" => $this->getInputs(),
             "method" => $this->getMethod(),
         ];
+    }
 
-        return view('payment.redirect_to_bank', $data);
+    public function render()
+    {
+        return view('MultiPayment::redirect_to_gateway', $this->getData());
     }
 
     public function json($options = JSON_UNESCAPED_UNICODE)
     {
-        return response()->json($data, 200, [], $options);
+        return response()->json($this->getData(), 200, [], $options);
     }
 
     public function __toString()
     {
-        return json_encode($data, JSON_UNESCAPED_UNICODE);
+        return json_encode($this->getData(), JSON_UNESCAPED_UNICODE);
     }
 }
