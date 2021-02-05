@@ -9,10 +9,10 @@ class Invoice
 {
     protected $amount;
     protected string $uuid;
-    protected string $transactionId;
     protected ?string $email = null;
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
+    protected string $transactionId;
 
     public function __construct($amount)
     {
