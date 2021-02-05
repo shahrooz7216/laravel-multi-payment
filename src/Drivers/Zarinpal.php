@@ -2,6 +2,7 @@
 
 namespace Omalizadeh\MultiPayment\Drivers;
 
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentCanceledException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
@@ -12,6 +13,9 @@ class Zarinpal extends Driver
 {
     public function purchase(): string
     {
+        if (empty($this->settings['merchantId'])) {
+            throw new InvalidConfigurationException('Merchant id has not been set.');
+        }
         if (!empty($this->invoice->getDescription())) {
             $description = $this->invoice->getDescription();
         } else {
@@ -159,6 +163,6 @@ class Zarinpal extends Driver
 
     private function getMode(): string
     {
-        return strtolower($this->settings['mode']);
+        return strtolower(trim($this->settings['mode']));
     }
 }
