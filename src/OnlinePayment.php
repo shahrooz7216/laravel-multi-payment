@@ -16,9 +16,9 @@ class OnlinePayment
     protected Invoice $invoice;
     protected DriverInterface $driver;
 
-    public function __construct(Invoice $invoice, string $driverName = null, string $appName = null)
+    public function __construct(Invoice $invoice, ?string $driverName = null, ?string $appName = null)
     {
-        $this->invoice = $invoice;
+        $this->setInvoice($invoice);
         $this->setDriverName($driverName ?? config('online-payment.default_driver'));
         $this->setAppName($appName ?? config('online-payment.default_app'));
         $this->setSettings();
@@ -27,19 +27,19 @@ class OnlinePayment
 
     public function purchase(): string
     {
-        return $this->driver->purchase();
+        return $this->getDriver()->purchase();
     }
 
     public function pay()
     {
-        return $this->driver->pay();
+        return $this->getDriver()->pay();
     }
 
     public function verify(): Receipt
     {
-        $refId = $this->driver->verify();
+        $refId = $this->getDriver()->verify();
 
-        return new Receipt($refId, $this->invoice, $this->driverName, $this->appName);
+        return new Receipt($refId, $this->getInvoice(), $this->getDriverName(), $this->getAppName());
     }
 
     protected function validateDriver()
@@ -51,10 +51,10 @@ class OnlinePayment
             throw new AppNotFoundException('App not selected or default app does not exist.');
         }
         if (empty(config($this->getSettingsConfigKey())) or empty(config($this->getDriverNamespaceConfigKey()))) {
-            throw new DriverNotFoundException('Driver not found in config file. Try updating the package.');
+            throw new DriverNotFoundException('Driver settings not found in config file.');
         }
         if (!class_exists(config($this->getDriverNamespaceConfigKey()))) {
-            throw new DriverNotFoundException('Driver source not found. Please update the package.');
+            throw new DriverNotFoundException('Driver class not found. Check driver aliases or try updating the package');
         }
         $reflect = new ReflectionClass(config($this->getDriverNamespaceConfigKey()));
         if (!$reflect->implementsInterface(DriverInterface::class)) {
@@ -70,6 +70,11 @@ class OnlinePayment
     protected function getDriverNamespaceConfigKey()
     {
         return 'online-payment.aliases.' . $this->getDriverName();
+    }
+
+    protected function setInvoice(Invoice $invoice)
+    {
+        $this->invoice = $invoice;
     }
 
     protected function setDriver()
@@ -96,18 +101,23 @@ class OnlinePayment
         return $this;
     }
 
-    protected function getDriver()
-    {
-        return $this->driver;
-    }
-
-    public function getDriverName()
+    public function getDriverName(): string
     {
         return $this->driverName;
     }
 
-    public function getAppName()
+    public function getAppName(): string
     {
         return $this->appName;
+    }
+
+    protected function getDriver(): DriverInterface
+    {
+        return $this->driver;
+    }
+
+    protected function getInvoice(): Invoice
+    {
+        return $this->invoice;
     }
 }
