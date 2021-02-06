@@ -32,7 +32,11 @@ abstract class Driver implements DriverInterface
 
     abstract protected function getResponseSuccessStatusCode(): string;
 
-    public function redirectWithForm($action, array $inputs = [], $method = 'POST'): RedirectionForm
+    abstract protected function getPurchaseData(): array;
+
+    abstract protected function getVerificationData(): array;
+
+    protected function redirectWithForm($action, array $inputs = [], $method = 'POST'): RedirectionForm
     {
         return new RedirectionForm($action, $inputs, $method);
     }

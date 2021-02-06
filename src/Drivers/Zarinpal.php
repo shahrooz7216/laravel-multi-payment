@@ -13,25 +13,7 @@ class Zarinpal extends Driver
 {
     public function purchase(): string
     {
-        if (empty($this->settings['merchantId'])) {
-            throw new InvalidConfigurationException('Merchant id has not been set.');
-        }
-        if (!empty($this->invoice->getDescription())) {
-            $description = $this->invoice->getDescription();
-        } else {
-            $description = $this->settings['description'];
-        }
-        $mobile = $this->invoice->getPhoneNumber();
-        $email = $this->invoice->getEmail();
-        $data = array(
-            'MerchantID' => $this->settings['merchantId'],
-            'Amount' => $this->invoice->getAmount(),
-            'CallbackURL' => $this->settings['callbackUrl'],
-            'Description' => $description,
-            'Mobile' => $mobile,
-            'Email' => $email,
-            'AdditionalData' => $this->invoice->getCustomerInfo()
-        );
+        $data = $this->getPurchaseData();
         $client = new SoapClient($this->getPurchaseUrl(), ['encoding' => 'UTF-8']);
         $result = $client->PaymentRequest($data);
         if ($result->Status != $this->getResponseSuccessStatusCode() || empty($result->Authority)) {
@@ -58,16 +40,11 @@ class Zarinpal extends Driver
 
     public function verify(): string
     {
-        $authority = $this->invoice->getTransactionId() ?? request('Authority');
         $status = request('Status');
-        $data = [
-            'MerchantID' => $this->settings['merchantId'],
-            'Authority' => $authority,
-            'Amount' => $this->invoice->getAmount(),
-        ];
         if ($status != 'OK') {
             throw new PaymentCanceledException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
         }
+        $data = $this->getVerificationData();
         $client = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
         $result = $client->PaymentVerification($data);
         if ($result->Status != $this->getResponseSuccessStatusCode()) {
@@ -159,6 +136,39 @@ class Zarinpal extends Driver
         }
 
         return $url;
+    }
+
+    protected function getPurchaseData(): array
+    {
+        if (empty($this->settings['merchantId'])) {
+            throw new InvalidConfigurationException('Merchant id has not been set.');
+        }
+        if (!empty($this->invoice->getDescription())) {
+            $description = $this->invoice->getDescription();
+        } else {
+            $description = $this->settings['description'];
+        }
+        $mobile = $this->invoice->getPhoneNumber();
+        $email = $this->invoice->getEmail();
+        return [
+            'MerchantID' => $this->settings['merchantId'],
+            'Amount' => $this->invoice->getAmount(),
+            'CallbackURL' => $this->settings['callbackUrl'],
+            'Description' => $description,
+            'Mobile' => $mobile,
+            'Email' => $email,
+            'AdditionalData' => $this->invoice->getCustomerInfo()
+        ];
+    }
+
+    protected function getVerificationData(): array
+    {
+        $authority = $this->invoice->getTransactionId() ?? request('Authority');
+        return [
+            'MerchantID' => $this->settings['merchantId'],
+            'Authority' => $authority,
+            'Amount' => $this->invoice->getAmount(),
+        ];
     }
 
     private function getMode(): string
