@@ -20,7 +20,7 @@ class Invoice
         $this->uuid = Uuid::uuid4()->toString();
     }
 
-    public function setAmount($amount)
+    public function setAmount($amount): Invoice
     {
         if (!is_numeric($amount)) {
             throw new InvalidArgumentException('Invoice amount must be a numeric value.');
@@ -33,25 +33,25 @@ class Invoice
         return $this;
     }
 
-    public function setTransactionId(string $id)
+    public function setTransactionId(string $id): Invoice
     {
         $this->transactionId = $id;
         return $this;
     }
 
-    public function setDescription(string $description)
+    public function setDescription(string $description): Invoice
     {
         $this->description = $description;
         return $this;
     }
 
-    public function setPhoneNumber(string $phone)
+    public function setPhoneNumber(string $phone): Invoice
     {
         $this->phoneNumber = $phone;
         return $this;
     }
 
-    public function setEmail(string $email)
+    public function setEmail(string $email): Invoice
     {
         $this->email = $email;
         return $this;
@@ -62,32 +62,32 @@ class Invoice
         return $this->amount;
     }
 
-    public function getUuid()
+    public function getUuid(): string
     {
         return $this->uuid;
     }
 
-    public function getTransactionId()
+    public function getTransactionId(): string
     {
         return $this->transactionId;
     }
 
-    public function getPhoneNumber()
+    public function getPhoneNumber(): string
     {
         return $this->phoneNumber;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function getEmail()
+    public function getEmail(): string
     {
         return $this->email;
     }
 
-    public function getCustomerInfo()
+    public function getCustomerInfo(): array
     {
         return [
             'phone' => $this->getPhoneNumber(),

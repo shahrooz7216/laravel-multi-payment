@@ -30,7 +30,7 @@ class OnlinePayment
         return $this->getDriver()->purchase();
     }
 
-    public function pay()
+    public function pay(): RedirectionForm
     {
         return $this->getDriver()->pay();
     }
