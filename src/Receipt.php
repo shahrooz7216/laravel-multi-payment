@@ -38,7 +38,7 @@ class Receipt
 
     public function getAppName(): string
     {
-        return $this->appNameF;
+        return $this->appName;
     }
 
     public function getTransactionId(): string
