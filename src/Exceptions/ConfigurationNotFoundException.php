@@ -4,7 +4,7 @@ namespace Omalizadeh\MultiPayment\Exceptions;
 
 use Exception;
 
-class AppNotFoundException extends Exception
+class ConfigurationNotFoundException extends Exception
 {
     //
 }
