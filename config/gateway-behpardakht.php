@@ -1,14 +1,32 @@
 <?php
+
 return [
-    'driver' => '',
+    
+    /**
+     *  driver class namespace
+     */
+    'driver' => Omalizadeh\MultiPayment\Drivers\Behpardakht::class,
+
+    /**
+     *  default configuration key name
+     */
+    'default_config' => 'default',
+
+    /**
+     *  gateway configurations (add as many as you want)
+     */
     'default' => [
         'terminalId' => '',
         'username' => '',
         'password' => '',
         'callbackUrl' => 'http://yoursite.com/path/to',
         'description' => 'payment using behpardakht',
-        'apiPurchaseUrl' => 'https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl',
-        'apiPaymentUrl' => 'https://bpm.shaparak.ir/pgwchannel/startpay.mellat',
-        'apiVerificationUrl' => 'https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl',
+    ],
+    'other' => [
+        'terminalId' => '',
+        'username' => '',
+        'password' => '',
+        'callbackUrl' => 'http://yoursite.com/path/to',
+        'description' => 'payment using behpardakht',
     ]
 ];
