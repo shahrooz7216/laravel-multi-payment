@@ -16,7 +16,7 @@ class Zarinpal extends Driver
         $data = $this->getPurchaseData();
         $client = new SoapClient($this->getPurchaseUrl(), ['encoding' => 'UTF-8']);
         $result = $client->PaymentRequest($data);
-        if ($result->Status != $this->getResponseSuccessStatusCode() || empty($result->Authority)) {
+        if ($result->Status != $this->getSuccessResponseStatusCode() or empty($result->Authority)) {
             $message = $this->getStatusMessage($result->Status);
             throw new PurchaseFailedException($message, $result->Status);
         }
@@ -47,7 +47,7 @@ class Zarinpal extends Driver
         $data = $this->getVerificationData();
         $client = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
         $result = $client->PaymentVerification($data);
-        if ($result->Status != $this->getResponseSuccessStatusCode()) {
+        if ($result->Status != $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($result->Status);
             throw new PaymentFailedException($message, $result->Status);
         }
@@ -55,7 +55,7 @@ class Zarinpal extends Driver
         return $result->RefID;
     }
 
-    protected function getResponseSuccessStatusCode(): string
+    protected function getSuccessResponseStatusCode(): string
     {
         return "100";
     }
@@ -88,14 +88,11 @@ class Zarinpal extends Driver
     {
         $mode = $this->getMode();
         switch ($mode) {
-            case 'zaringate':
-                $url = $this->settings['zaringatePurchaseApiUrl'];
-                break;
             case 'sandbox':
-                $url = $this->settings['sandboxPurchaseApiUrl'];
+                $url = 'https://sandbox.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
             default:
-                $url = $this->settings['purchaseApiUrl'];
+                $url = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
         }
 
@@ -107,13 +104,13 @@ class Zarinpal extends Driver
         $mode = $this->getMode();
         switch ($mode) {
             case 'zaringate':
-                $url = $this->settings['zaringatePaymentApiUrl'];
+                $url = 'https://zarinpal.com/pg/StartPay/:authority/ZarinGate';
                 break;
             case 'sandbox':
-                $url = $this->settings['sandboxPaymentApiUrl'];
+                $url = 'https://sandbox.zarinpal.com/pg/StartPay/';
                 break;
             default:
-                $url = $this->settings['paymentApiUrl'];
+                $url = 'https://zarinpal.com/pg/StartPay/';
                 break;
         }
 
@@ -124,14 +121,11 @@ class Zarinpal extends Driver
     {
         $mode = $this->getMode();
         switch ($mode) {
-            case 'zaringate':
-                $url = $this->settings['zaringateVerificationApiUrl'];
-                break;
             case 'sandbox':
-                $url = $this->settings['sandboxVerificationApiUrl'];
+                $url = 'https://sandbox.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
             default:
-                $url = $this->settings['verificationApiUrl'];
+                $url = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
         }
 
