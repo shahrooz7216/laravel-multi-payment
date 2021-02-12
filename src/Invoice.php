@@ -9,10 +9,12 @@ class Invoice
 {
     protected $amount;
     protected string $uuid;
+    protected string $transactionId;
+    protected ?int $userId = null;
+    protected ?string $token = null;
     protected ?string $email = null;
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
-    protected string $transactionId;
 
     public function __construct($amount)
     {
@@ -39,6 +41,12 @@ class Invoice
         return $this;
     }
 
+    public function setToken(string $token): Invoice
+    {
+        $this->token = $token;
+        return $this;
+    }
+
     public function setDescription(string $description): Invoice
     {
         $this->description = $description;
@@ -57,6 +65,12 @@ class Invoice
         return $this;
     }
 
+    public function setUserId(int $userId): Invoice
+    {
+        $this->userId = $userId;
+        return $this;
+    }
+
     public function getAmount()
     {
         return $this->amount;
@@ -65,6 +79,11 @@ class Invoice
     public function getUuid(): string
     {
         return $this->uuid;
+    }
+
+    public function getToken(): ?string
+    {
+        return $this->token;
     }
 
     public function getTransactionId(): string
@@ -85,6 +104,11 @@ class Invoice
     public function getEmail(): ?string
     {
         return $this->email;
+    }
+
+    public function getUserId(): ?int
+    {
+        return $this->userId;
     }
 
     public function getCustomerInfo(): array
