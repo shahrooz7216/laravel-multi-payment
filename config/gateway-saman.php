@@ -16,21 +16,16 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Saman::class,
 
     /**
-     *  default configuration key name
-     */
-    'default_config' => 'default',
-
-    /**
      *  gateway configurations (add as many as you want)
      */
     'default' => [
-        'terminalId' => '',
-        'callbackUrl' => 'https://yoursite.com/path/to',
+        'terminal_id' => '',
+        'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using saman',
     ],
     'other' => [
-        'terminalId' => '',
-        'callbackUrl' => 'https://yoursite.com/path/to',
+        'terminal_id' => '',
+        'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using saman',
     ]
 ];

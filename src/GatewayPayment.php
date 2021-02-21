@@ -6,6 +6,7 @@ use Exception;
 use Omalizadeh\MultiPayment\Drivers\DriverInterface;
 use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use ReflectionClass;
 
 class GatewayPayment
@@ -16,11 +17,15 @@ class GatewayPayment
     protected Invoice $invoice;
     protected DriverInterface $driver;
 
-    public function __construct(Invoice $invoice, ?string $gatewayName = null, ?string $gatewayConfigKey = null)
+    public function __construct(Invoice $invoice, ?string $gateway = null)
     {
+        $gatewayConfig = explode('.', $gateway ?? config('multi-payment.default_gateway'));
+        if (count($gatewayConfig) !== 2 or empty($gatewayConfig[0]) or empty($gatewayConfig[1])) {
+            throw new InvalidConfigurationException('invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_SETTINGS_KEY');
+        }
         $this->setInvoice($invoice);
-        $this->setGatewayName($gatewayName ?? config('multi-payment.default_gateway'));
-        $this->setGatewayConfigKey($gatewayConfigKey ?? config('gateway-' . $this->getGatewayName() . '.default_config'));
+        $this->setGatewayName($gatewayConfig[0]);
+        $this->setGatewayConfigKey($gatewayConfig[1]);
         $this->setSettings();
         $this->setDriver();
     }
