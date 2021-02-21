@@ -19,7 +19,7 @@ class Saman extends Driver
         $response = Http::withHeaders($this->getRequestHeaders())
             ->post($this->getPurchaseUrl(), $data);
         if ($response->successful()) {
-            if ($response['status'] != 1) {
+            if ($response['status'] != (int) $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
             } else {
                 $token = $response['token'];
@@ -58,12 +58,11 @@ class Saman extends Driver
         } else {
             throw new HttpResponseException($response->body(), $response->status());
         }
-
-        return;
     }
 
     protected function getSuccessResponseStatusCode(): string
     {
+        return "1";
     }
 
     protected function getStatusMessage($status): string
