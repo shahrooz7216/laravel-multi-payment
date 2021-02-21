@@ -108,17 +108,17 @@ class GatewayPayment
 
     private function validateDriver()
     {
-        if (empty($this->getDriverName())) {
-            throw new DriverNotFoundException('Driver not selected or default driver does not exist.');
+        if (empty($this->getGatewayName())) {
+            throw new ConfigurationNotFoundException('gateway not selected or default gateway does not exist.');
         }
         if (empty($this->getGatewayConfigKey())) {
             throw new ConfigurationNotFoundException('Gateway configuration key not selected or default configuration does not exist.');
         }
         if (empty(config($this->getSettingsConfigKey())) or empty(config($this->getDriverNamespaceConfigKey()))) {
-            throw new DriverNotFoundException('Driver settings not found in config file.');
+            throw new DriverNotFoundException('Gateway driver settings not found in config file.');
         }
         if (!class_exists(config($this->getDriverNamespaceConfigKey()))) {
-            throw new DriverNotFoundException('Driver class not found. Check driver aliases or try updating the package');
+            throw new DriverNotFoundException('Gateway driver class not found. Check driver aliases or try updating the package');
         }
         $reflect = new ReflectionClass(config($this->getDriverNamespaceConfigKey()));
         if (!$reflect->implementsInterface(DriverInterface::class)) {
