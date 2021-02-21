@@ -67,7 +67,7 @@ class Behpardakht extends Driver
 
     protected function getPurchaseData(): array
     {
-        if (empty($this->settings['terminalId'])) {
+        if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
         if (empty($this->settings['username']) or empty($this->settings['password'])) {
@@ -80,10 +80,10 @@ class Behpardakht extends Driver
         }
 
         return array(
-            'terminalId' => $this->settings['terminalId'],
+            'terminalId' => $this->settings['terminal_id'],
             'userName' => $this->settings['username'],
             'userPassword' => $this->settings['password'],
-            'callBackUrl' => $this->settings['callbackUrl'],
+            'callBackUrl' => $this->settings['callback_url'],
             'amount' => $this->invoice->getAmount(),
             'localDate' => now()->format('Ymd'),
             'localTime' => now()->format('Gis'),
@@ -100,7 +100,7 @@ class Behpardakht extends Driver
         $verifySaleReferenceId = request('SaleReferenceId');
 
         return array(
-            'terminalId' => $this->settings['terminalId'],
+            'terminalId' => $this->settings['terminal_id'],
             'userName' => $this->settings['username'],
             'userPassword' => $this->settings['password'],
             'orderId' => $orderId,

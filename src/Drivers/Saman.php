@@ -118,16 +118,16 @@ class Saman extends Driver
 
     protected function getPurchaseData(): array
     {
-        if (empty($this->settings['terminalId'])) {
+        if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
         $mobile = $this->invoice->getPhoneNumber();
 
         return [
             'Action' => 'Token',
-            'TerminalId' => $this->settings['terminalId'],
+            'TerminalId' => $this->settings['terminal_id'],
             'Amount' => $this->invoice->getAmount(),
-            'RedirectUrl' => $this->settings['callbackUrl'],
+            'RedirectUrl' => $this->settings['callback_url'],
             'CellNumber' => $mobile,
             'ResNum' => $this->invoice->getUuid(),
         ];
@@ -137,7 +137,7 @@ class Saman extends Driver
     {
         return [
             'RefNum' => request('RefNum'),
-            'MerchantID' => $this->settings['terminalId']
+            'MerchantID' => $this->settings['terminal_id']
         ];
     }
 

@@ -134,7 +134,7 @@ class Zarinpal extends Driver
 
     protected function getPurchaseData(): array
     {
-        if (empty($this->settings['merchantId'])) {
+        if (empty($this->settings['merchant_id'])) {
             throw new InvalidConfigurationException('Merchant id has not been set.');
         }
         if (!empty($this->invoice->getDescription())) {
@@ -145,9 +145,9 @@ class Zarinpal extends Driver
         $mobile = $this->invoice->getPhoneNumber();
         $email = $this->invoice->getEmail();
         return [
-            'MerchantID' => $this->settings['merchantId'],
+            'MerchantID' => $this->settings['merchant_id'],
             'Amount' => $this->invoice->getAmount(),
-            'CallbackURL' => $this->settings['callbackUrl'],
+            'CallbackURL' => $this->settings['callback_url'],
             'Description' => $description,
             'Mobile' => $mobile,
             'Email' => $email,
@@ -159,7 +159,7 @@ class Zarinpal extends Driver
     {
         $authority = $this->invoice->getTransactionId() ?? request('Authority');
         return [
-            'MerchantID' => $this->settings['merchantId'],
+            'MerchantID' => $this->settings['merchant_id'],
             'Authority' => $authority,
             'Amount' => $this->invoice->getAmount(),
         ];
