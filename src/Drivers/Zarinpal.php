@@ -3,7 +3,6 @@
 namespace Omalizadeh\MultiPayment\Drivers;
 
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentCanceledException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\RedirectionForm;
@@ -42,7 +41,7 @@ class Zarinpal extends Driver
     {
         $status = request('Status');
         if ($status != 'OK') {
-            throw new PaymentCanceledException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
+            throw new PaymentFailedException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
         }
         $data = $this->getVerificationData();
         $client = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
