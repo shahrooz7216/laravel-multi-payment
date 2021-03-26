@@ -8,6 +8,11 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Behpardakht::class,
 
     /**
+     *  soap client options
+     */
+    'soap_options' => [],
+
+    /**
      *  gateway configurations (add as many as you want)
      */
     'default' => [

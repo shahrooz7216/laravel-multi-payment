@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers;
 
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\RedirectionForm;
@@ -10,10 +11,15 @@ use SoapClient;
 
 class Behpardakht extends Driver
 {
+    private array $soapOptions = ['encoding' => 'UTF-8'];
+
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
-        $soap = new SoapClient($this->getPurchaseUrl(), ['encoding' => 'UTF-8']);
+        if (isset($this->settings['soap_options']) and is_array($this->settings['soap_options'])) {
+            $this->soapOptions = array_merge($this->soapOptions, $this->settings['soap_options']);
+        }
+        $soap = new SoapClient($this->getPurchaseUrl(), $this->soapOptions);
         $response = $soap->bpPayRequest($data);
         $responseData = explode(',', $response->return);
         $responseCode = $responseData[0];
@@ -44,14 +50,16 @@ class Behpardakht extends Driver
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
         $data = $this->getVerificationData();
-        $soap = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
+        $soap = new SoapClient($this->getVerificationUrl(), $this->soapOptions);
         $verificationResponse = $soap->bpVerifyRequest($data);
         $responseCode = $verificationResponse->return;
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
             if ($responseCode != $this->getPaymentAlreadyVerifiedStatusCode()) {
                 $soap->bpReversalRequest($data);
+                throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
+            } else {
+                throw new PaymentAlreadyVerifiedException($this->getStatusMessage($responseCode), $responseCode);
             }
-            throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
         $settlingResponse = $soap->bpSettleRequest($data);
         $responseCode = $settlingResponse->return;
