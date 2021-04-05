@@ -10,7 +10,9 @@ return [
     /**
      *  soap client options
      */
-    'soap_options' => [],
+    'soap_options' => [
+        'encoding' => 'UTF-8'
+    ],
 
     /**
      *  gateway configurations (add as many as you want)
