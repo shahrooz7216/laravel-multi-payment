@@ -12,7 +12,7 @@ class MultiPaymentServiceProvider extends ServiceProvider
         parent::register();
         $this->mergeConfigFrom(
             __DIR__ . '/../../config/multi-payment.php',
-            'online-payment.php'
+            'multi-payment.php'
         );
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'MultiPayment');
     }
