@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Http;
 
 class Saman extends Driver
 {
-    private $headers = ['Accept' => 'application/json'];
-
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
@@ -142,6 +140,6 @@ class Saman extends Driver
 
     private function getRequestHeaders()
     {
-        return $this->headers;
+        return $this->settings['request_headers'] ?? [];
     }
 }
