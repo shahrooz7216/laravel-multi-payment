@@ -30,9 +30,13 @@ class GatewayPayment
         $this->setDriver();
     }
 
-    public function purchase(): string
+    public function purchase(?callable $callbackFunction = null): GatewayPayment
     {
-        return $this->getDriver()->purchase();
+        $transactionId = $this->getDriver()->purchase();
+        if ($callbackFunction) {
+            call_user_func($callbackFunction, $transactionId);
+        }
+        return $this;
     }
 
     public function pay(): RedirectionForm
