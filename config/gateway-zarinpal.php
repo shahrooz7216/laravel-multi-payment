@@ -8,6 +8,13 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal::class,
 
     /**
+     *  soap client options
+     */
+    'soap_options' => [
+        'encoding' => 'UTF-8'
+    ],
+
+    /**
      *  gateway configurations (add as many as you want)
      */
     'default' => [
