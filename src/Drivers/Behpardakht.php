@@ -11,15 +11,11 @@ use SoapClient;
 
 class Behpardakht extends Driver
 {
-    private array $soapOptions = ['encoding' => 'UTF-8'];
-
     public function purchase(): string
     {
+        $soapOptions = $this->settings['soap_options'] ?? null;
         $data = $this->getPurchaseData();
-        if (isset($this->settings['soap_options']) and is_array($this->settings['soap_options'])) {
-            $this->soapOptions = array_merge($this->soapOptions, $this->settings['soap_options']);
-        }
-        $soap = new SoapClient($this->getPurchaseUrl(), $this->soapOptions);
+        $soap = new SoapClient($this->getPurchaseUrl(), $soapOptions);
         $response = $soap->bpPayRequest($data);
         $responseData = explode(',', $response->return);
         $responseCode = $responseData[0];
@@ -49,8 +45,9 @@ class Behpardakht extends Driver
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
+        $soapOptions = $this->settings['soap_options'] ?? null;
         $data = $this->getVerificationData();
-        $soap = new SoapClient($this->getVerificationUrl(), $this->soapOptions);
+        $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
         $verificationResponse = $soap->bpVerifyRequest($data);
         $responseCode = $verificationResponse->return;
         if ($responseCode != $this->getSuccessResponseStatusCode()) {

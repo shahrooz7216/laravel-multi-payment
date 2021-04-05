@@ -13,7 +13,8 @@ class Zarinpal extends Driver
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
-        $client = new SoapClient($this->getPurchaseUrl(), ['encoding' => 'UTF-8']);
+        $soapOptions = $this->settings['soap_options'] ?? null;
+        $client = new SoapClient($this->getPurchaseUrl(), $soapOptions);
         $result = $client->PaymentRequest($data);
         if ($result->Status != $this->getSuccessResponseStatusCode() or empty($result->Authority)) {
             $message = $this->getStatusMessage($result->Status);
@@ -44,7 +45,8 @@ class Zarinpal extends Driver
             throw new PaymentFailedException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
         }
         $data = $this->getVerificationData();
-        $client = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
+        $soapOptions = $this->settings['soap_options'] ?? null;
+        $client = new SoapClient($this->getVerificationUrl(), $soapOptions);
         $result = $client->PaymentVerification($data);
         if ($result->Status != $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($result->Status);
