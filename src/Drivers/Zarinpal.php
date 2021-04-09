@@ -3,7 +3,6 @@
 namespace Omalizadeh\MultiPayment\Drivers;
 
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentCanceledException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\RedirectionForm;
@@ -14,9 +13,10 @@ class Zarinpal extends Driver
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
-        $client = new SoapClient($this->getPurchaseUrl(), ['encoding' => 'UTF-8']);
+        $soapOptions = $this->settings['soap_options'] ?? null;
+        $client = new SoapClient($this->getPurchaseUrl(), $soapOptions);
         $result = $client->PaymentRequest($data);
-        if ($result->Status != $this->getResponseSuccessStatusCode() || empty($result->Authority)) {
+        if ($result->Status != $this->getSuccessResponseStatusCode() or empty($result->Authority)) {
             $message = $this->getStatusMessage($result->Status);
             throw new PurchaseFailedException($message, $result->Status);
         }
@@ -42,12 +42,13 @@ class Zarinpal extends Driver
     {
         $status = request('Status');
         if ($status != 'OK') {
-            throw new PaymentCanceledException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
+            throw new PaymentFailedException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
         }
         $data = $this->getVerificationData();
-        $client = new SoapClient($this->getVerificationUrl(), ['encoding' => 'UTF-8']);
+        $soapOptions = $this->settings['soap_options'] ?? null;
+        $client = new SoapClient($this->getVerificationUrl(), $soapOptions);
         $result = $client->PaymentVerification($data);
-        if ($result->Status != $this->getResponseSuccessStatusCode()) {
+        if ($result->Status != $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($result->Status);
             throw new PaymentFailedException($message, $result->Status);
         }
@@ -55,7 +56,7 @@ class Zarinpal extends Driver
         return $result->RefID;
     }
 
-    protected function getResponseSuccessStatusCode(): string
+    protected function getSuccessResponseStatusCode(): string
     {
         return "100";
     }
@@ -88,14 +89,11 @@ class Zarinpal extends Driver
     {
         $mode = $this->getMode();
         switch ($mode) {
-            case 'zaringate':
-                $url = $this->settings['zaringatePurchaseApiUrl'];
-                break;
             case 'sandbox':
-                $url = $this->settings['sandboxPurchaseApiUrl'];
+                $url = 'https://sandbox.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
             default:
-                $url = $this->settings['purchaseApiUrl'];
+                $url = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
         }
 
@@ -107,13 +105,13 @@ class Zarinpal extends Driver
         $mode = $this->getMode();
         switch ($mode) {
             case 'zaringate':
-                $url = $this->settings['zaringatePaymentApiUrl'];
+                $url = 'https://zarinpal.com/pg/StartPay/:authority/ZarinGate';
                 break;
             case 'sandbox':
-                $url = $this->settings['sandboxPaymentApiUrl'];
+                $url = 'https://sandbox.zarinpal.com/pg/StartPay/';
                 break;
             default:
-                $url = $this->settings['paymentApiUrl'];
+                $url = 'https://zarinpal.com/pg/StartPay/';
                 break;
         }
 
@@ -124,14 +122,11 @@ class Zarinpal extends Driver
     {
         $mode = $this->getMode();
         switch ($mode) {
-            case 'zaringate':
-                $url = $this->settings['zaringateVerificationApiUrl'];
-                break;
             case 'sandbox':
-                $url = $this->settings['sandboxVerificationApiUrl'];
+                $url = 'https://sandbox.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
             default:
-                $url = $this->settings['verificationApiUrl'];
+                $url = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
                 break;
         }
 
@@ -140,7 +135,7 @@ class Zarinpal extends Driver
 
     protected function getPurchaseData(): array
     {
-        if (empty($this->settings['merchantId'])) {
+        if (empty($this->settings['merchant_id'])) {
             throw new InvalidConfigurationException('Merchant id has not been set.');
         }
         if (!empty($this->invoice->getDescription())) {
@@ -151,9 +146,9 @@ class Zarinpal extends Driver
         $mobile = $this->invoice->getPhoneNumber();
         $email = $this->invoice->getEmail();
         return [
-            'MerchantID' => $this->settings['merchantId'],
+            'MerchantID' => $this->settings['merchant_id'],
             'Amount' => $this->invoice->getAmount(),
-            'CallbackURL' => $this->settings['callbackUrl'],
+            'CallbackURL' => $this->settings['callback_url'],
             'Description' => $description,
             'Mobile' => $mobile,
             'Email' => $email,
@@ -165,7 +160,7 @@ class Zarinpal extends Driver
     {
         $authority = $this->invoice->getTransactionId() ?? request('Authority');
         return [
-            'MerchantID' => $this->settings['merchantId'],
+            'MerchantID' => $this->settings['merchant_id'],
             'Authority' => $authority,
             'Amount' => $this->invoice->getAmount(),
         ];

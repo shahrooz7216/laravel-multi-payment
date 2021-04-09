@@ -6,18 +6,18 @@ use Carbon\Carbon;
 
 class Receipt
 {
-    protected string $appName;
+    protected string $gatewayConfigKey;
     protected Carbon $datetime;
     protected Invoice $invoice;
-    protected string $driverName;
+    protected string $gatewayName;
     protected string $referenceId;
 
-    public function __construct($referenceId, Invoice $invoice, string $driverName, string $appName)
+    public function __construct($referenceId, Invoice $invoice, string $gatewayName, string $gatewayConfigKey)
     {
         $this->referenceId = $referenceId;
         $this->invoice = $invoice;
-        $this->driverName = $driverName;
-        $this->appName = $appName;
+        $this->gatewayName = $gatewayName;
+        $this->gatewayConfigKey = $gatewayConfigKey;
         $this->datetime = now();
     }
 
@@ -31,14 +31,14 @@ class Receipt
         return $this->datetime;
     }
 
-    public function getDriverName(): string
+    public function getGatewayName(): string
     {
-        return $this->driverName;
+        return $this->gatewayName;
     }
 
-    public function getAppName(): string
+    public function getGatewayConfigKey(): string
     {
-        return $this->appName;
+        return $this->gatewayConfigKey;
     }
 
     public function getTransactionId(): string
