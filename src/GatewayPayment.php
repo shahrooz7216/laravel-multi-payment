@@ -2,12 +2,13 @@
 
 namespace Omalizadeh\MultiPayment;
 
+use Closure;
 use Exception;
+use ReflectionClass;
 use Omalizadeh\MultiPayment\Drivers\DriverInterface;
-use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use ReflectionClass;
+use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 
 class GatewayPayment
 {
@@ -21,7 +22,7 @@ class GatewayPayment
     {
         $gatewayConfig = explode('.', $gateway ?? config('multi-payment.default_gateway'));
         if (count($gatewayConfig) !== 2 or empty($gatewayConfig[0]) or empty($gatewayConfig[1])) {
-            throw new InvalidConfigurationException('invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_SETTINGS_KEY');
+            throw new InvalidConfigurationException('Invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_SETTINGS_KEY');
         }
         $this->setInvoice($invoice);
         $this->setGatewayName($gatewayConfig[0]);
@@ -30,7 +31,7 @@ class GatewayPayment
         $this->setDriver();
     }
 
-    public function purchase(?callable $callbackFunction = null): GatewayPayment
+    public function purchase(?Closure $callbackFunction = null): GatewayPayment
     {
         $transactionId = $this->getDriver()->purchase();
         if ($callbackFunction) {
@@ -113,7 +114,7 @@ class GatewayPayment
     private function validateDriver()
     {
         if (empty($this->getGatewayName())) {
-            throw new ConfigurationNotFoundException('gateway not selected or default gateway does not exist.');
+            throw new ConfigurationNotFoundException('Gateway not selected or default gateway does not exist.');
         }
         if (empty($this->getGatewayConfigKey())) {
             throw new ConfigurationNotFoundException('Gateway configuration key not selected or default configuration does not exist.');

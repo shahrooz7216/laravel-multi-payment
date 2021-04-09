@@ -24,7 +24,7 @@ return [
     ],
 
     /**
-     *  gateway configurations (add as many as you want)
+     *  gateway configurations
      */
     'default' => [
         'terminal_id' => '',

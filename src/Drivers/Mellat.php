@@ -9,7 +9,7 @@ use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use SoapClient;
 
-class Behpardakht extends Driver
+class Mellat extends Driver
 {
     public function purchase(): string
     {

@@ -5,7 +5,7 @@ return [
     /**
      *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Behpardakht::class,
+    'driver' => Omalizadeh\MultiPayment\Drivers\Mellat::class,
 
     /**
      *  soap client options
@@ -15,20 +15,20 @@ return [
     ],
 
     /**
-     *  gateway configurations (add as many as you want)
+     *  gateway configurations
      */
     'default' => [
         'terminal_id' => '',
         'username' => '',
         'password' => '',
         'callback_url' => 'https://yoursite.com/path/to',
-        'description' => 'payment using behpardakht',
+        'description' => 'payment using mellat gateway',
     ],
     'other' => [
         'terminal_id' => '',
         'username' => '',
         'password' => '',
         'callback_url' => 'https://yoursite.com/path/to',
-        'description' => 'payment using behpardakht',
+        'description' => 'payment using mellat gateway',
     ]
 ];

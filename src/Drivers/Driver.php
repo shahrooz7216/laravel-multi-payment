@@ -30,7 +30,7 @@ abstract class Driver implements DriverInterface
 
     abstract protected function getVerificationUrl(): string;
 
-    abstract protected function getSuccessResponseStatusCode(): string;
+    abstract protected function getSuccessResponseStatusCode();
 
     abstract protected function getPurchaseData(): array;
 

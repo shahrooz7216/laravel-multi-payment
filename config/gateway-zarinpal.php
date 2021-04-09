@@ -15,7 +15,7 @@ return [
     ],
 
     /**
-     *  gateway configurations (add as many as you want)
+     *  gateway configurations
      */
     'default' => [
         'mode'        => 'normal', // supported values: normal, sandbox, zaringate
