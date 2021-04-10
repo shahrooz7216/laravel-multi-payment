@@ -35,5 +35,5 @@
         "ext-json": "*",
         "ext-soap": "*"
     },
-    "minimum-stability": "stable"
+    "prefer-stable": true
 }
