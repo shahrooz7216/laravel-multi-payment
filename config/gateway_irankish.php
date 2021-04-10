@@ -10,8 +10,8 @@ return [
     /**
      *  soap client options
      */
-    'request_headers' => [
-        'Accept' => 'application/json'
+    'soap_options' => [
+        'encoding' => 'UTF-8'
     ],
 
     /**
