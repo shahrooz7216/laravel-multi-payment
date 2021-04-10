@@ -20,9 +20,9 @@ class GatewayPayment
 
     public function __construct(Invoice $invoice, ?string $gateway = null)
     {
-        $gatewayConfig = explode('.', $gateway ?? config('multi-payment.default_gateway'));
+        $gatewayConfig = explode('.', $gateway ?? config('multipayment.default_gateway'));
         if (count($gatewayConfig) !== 2 or empty($gatewayConfig[0]) or empty($gatewayConfig[1])) {
-            throw new InvalidConfigurationException('Invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_SETTINGS_KEY');
+            throw new InvalidConfigurationException('Invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_CONFIG_KEY');
         }
         $this->setInvoice($invoice);
         $this->setGatewayName($gatewayConfig[0]);
@@ -54,12 +54,12 @@ class GatewayPayment
 
     protected function getSettingsConfigKey()
     {
-        return 'gateway-' . $this->getGatewayName() . '.' . $this->getGatewayConfigKey();
+        return 'gateway_' . $this->getGatewayName() . '.' . $this->getGatewayConfigKey();
     }
 
     protected function getDriverNamespaceConfigKey()
     {
-        return 'gateway-' . $this->getGatewayName() . '.driver';
+        return 'gateway_' . $this->getGatewayName() . '.driver';
     }
 
     protected function setInvoice(Invoice $invoice)

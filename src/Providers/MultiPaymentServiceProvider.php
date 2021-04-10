@@ -11,8 +11,8 @@ class MultiPaymentServiceProvider extends ServiceProvider
     {
         parent::register();
         $this->mergeConfigFrom(
-            __DIR__ . '/../../config/multi-payment.php',
-            'multi-payment.php'
+            __DIR__ . '/../../config/multipayment.php',
+            'multipayment.php'
         );
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'MultiPayment');
     }
@@ -28,8 +28,8 @@ class MultiPaymentServiceProvider extends ServiceProvider
             ], 'views');
 
             $this->publishes([
-                __DIR__ . '/../../config/multi-payment.php' => config_path(
-                    'multi-payment.php'
+                __DIR__ . '/../../config/multipayment.php' => config_path(
+                    'multipayment.php'
                 )
             ], 'config');
 
@@ -46,7 +46,7 @@ class MultiPaymentServiceProvider extends ServiceProvider
             $list,
             function ($file) use ($configPath) {
                 return is_file($configPath . $file)
-                    && preg_match('/^(gateway\-(.+))\.php$/i', $file)
+                    && preg_match('/^(gateway\_(.+))\.php$/i', $file)
                     && pathinfo(
                         $configPath . $file,
                         PATHINFO_EXTENSION

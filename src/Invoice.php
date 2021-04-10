@@ -27,7 +27,7 @@ class Invoice
         if (!is_numeric($amount)) {
             throw new InvalidArgumentException('Invoice amount must be a numeric value.');
         }
-        if (config('online-payment.convert_to_rials')) {
+        if (config('multipayment.convert_to_rials')) {
             $this->amount = $amount * 10;
         } else {
             $this->amount = $amount;
