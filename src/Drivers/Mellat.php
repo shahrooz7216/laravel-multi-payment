@@ -92,7 +92,7 @@ class Mellat extends Driver
             'amount' => $this->invoice->getAmount(),
             'localDate' => now()->format('Ymd'),
             'localTime' => now()->format('Gis'),
-            'orderId' => crc32($this->invoice->getUuid()),
+            'orderId' => $this->invoice->getPaymentId(),
             'additionalData' => $description,
             'payerId' => $this->invoice->getUserId()
         );
@@ -112,26 +112,6 @@ class Mellat extends Driver
             'saleOrderId' => $verifySaleOrderId,
             'saleReferenceId' => $verifySaleReferenceId
         );
-    }
-
-    protected function getSuccessResponseStatusCode(): string
-    {
-        return "0";
-    }
-
-    private function getPaymentAlreadyVerifiedStatusCode(): string
-    {
-        return "43";
-    }
-
-    private function getPaymentAlreadySettledStatusCode(): string
-    {
-        return "45";
-    }
-
-    private function getPaymentAlreadyReversedStatusCode(): string
-    {
-        return "48";
     }
 
     protected function getStatusMessage($status): string
@@ -187,6 +167,26 @@ class Mellat extends Driver
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
         return array_key_exists($status, $translations) ? $translations[$status] : $unknownError;
+    }
+
+    protected function getSuccessResponseStatusCode(): string
+    {
+        return "0";
+    }
+
+    private function getPaymentAlreadyVerifiedStatusCode(): string
+    {
+        return "43";
+    }
+
+    private function getPaymentAlreadySettledStatusCode(): string
+    {
+        return "45";
+    }
+
+    private function getPaymentAlreadyReversedStatusCode(): string
+    {
+        return "48";
     }
 
     protected function getPurchaseUrl(): string

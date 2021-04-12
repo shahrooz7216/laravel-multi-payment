@@ -3,10 +3,9 @@
 return [
 
     /**
-     * Important Note: Saman gateway payment uses invoice uuid for purchase & verification.
-     * After successful purchase, uuid will be returned automatically. Save uuid in database
-     * for verification. Invoice transaction id will be set after successful payment verification
-     * and it must be saved into database manually for further use.
+     * Important Note: Saman gateway payment uses RefNum for verification.
+     * RefNum will be set as invoice transaction_id after successful payment verification
+     * and it must be saved into database for further use.
      * 
      * Note: Merchant id is the same as Terminal id.
      */
@@ -15,13 +14,6 @@ return [
      *  driver class namespace
      */
     'driver' => Omalizadeh\MultiPayment\Drivers\Saman::class,
-
-    /**
-     *  api request headers sent to gateway
-     */
-    'request_headers' => [
-        'Accept' => 'application/json'
-    ],
 
     /**
      *  gateway configurations

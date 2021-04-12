@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers;
 
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\RedirectionForm;
@@ -50,20 +51,51 @@ class Zarinpal extends Driver
         $result = $client->PaymentVerification($data);
         if ($result->Status != $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($result->Status);
+            if ($result->Status == $this->getPaymentAlreadyVerifiedStatusCode()) {
+                throw new PaymentAlreadyVerifiedException($message, $result->Status);
+            }
             throw new PaymentFailedException($message, $result->Status);
         }
 
         return $result->RefID;
     }
 
-    protected function getSuccessResponseStatusCode(): string
+    protected function getPurchaseData(): array
     {
-        return "100";
+        if (empty($this->settings['merchant_id'])) {
+            throw new InvalidConfigurationException('Merchant id has not been set.');
+        }
+        if (!empty($this->invoice->getDescription())) {
+            $description = $this->invoice->getDescription();
+        } else {
+            $description = $this->settings['description'];
+        }
+        $mobile = $this->invoice->getPhoneNumber();
+        $email = $this->invoice->getEmail();
+
+        return [
+            'MerchantID' => $this->settings['merchant_id'],
+            'Amount' => $this->invoice->getAmount(),
+            'CallbackURL' => $this->settings['callback_url'],
+            'Description' => $description,
+            'Mobile' => $mobile,
+            'Email' => $email,
+        ];
+    }
+
+    protected function getVerificationData(): array
+    {
+        $authority = request('Authority') ?? $this->invoice->getTransactionId();
+        return [
+            'MerchantID' => $this->settings['merchant_id'],
+            'Authority' => $authority,
+            'Amount' => $this->invoice->getAmount(),
+        ];
     }
 
     protected function getStatusMessage($status): string
     {
-        $messages = array(
+        $messages = [
             "-1" => "اطلاعات ارسال شده ناقص است.",
             "-2" => "IP و يا مرچنت كد پذيرنده صحيح نيست",
             "-3" => "با توجه به محدوديت هاي شاپرك امكان پرداخت با رقم درخواست شده ميسر نمي باشد",
@@ -79,10 +111,20 @@ class Zarinpal extends Driver
             "-42" => "مدت زمان معتبر طول عمر شناسه پرداخت بايد بين 30 دقيه تا 45 روز مي باشد.",
             "-54" => "درخواست مورد نظر آرشيو شده است",
             "101" => "عمليات پرداخت موفق بوده و قبلا PaymentVerification تراكنش انجام شده است.",
-        );
+        ];
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
         return array_key_exists($status, $messages) ? $messages[$status] : $unknownError;
+    }
+
+    protected function getSuccessResponseStatusCode(): string
+    {
+        return "100";
+    }
+
+    private function getPaymentAlreadyVerifiedStatusCode(): string
+    {
+        return "101";
     }
 
     protected function getPurchaseUrl(): string
@@ -131,39 +173,6 @@ class Zarinpal extends Driver
         }
 
         return $url;
-    }
-
-    protected function getPurchaseData(): array
-    {
-        if (empty($this->settings['merchant_id'])) {
-            throw new InvalidConfigurationException('Merchant id has not been set.');
-        }
-        if (!empty($this->invoice->getDescription())) {
-            $description = $this->invoice->getDescription();
-        } else {
-            $description = $this->settings['description'];
-        }
-        $mobile = $this->invoice->getPhoneNumber();
-        $email = $this->invoice->getEmail();
-        return [
-            'MerchantID' => $this->settings['merchant_id'],
-            'Amount' => $this->invoice->getAmount(),
-            'CallbackURL' => $this->settings['callback_url'],
-            'Description' => $description,
-            'Mobile' => $mobile,
-            'Email' => $email,
-            'AdditionalData' => $this->invoice->getCustomerInfo()
-        ];
-    }
-
-    protected function getVerificationData(): array
-    {
-        $authority = $this->invoice->getTransactionId() ?? request('Authority');
-        return [
-            'MerchantID' => $this->settings['merchant_id'],
-            'Authority' => $authority,
-            'Amount' => $this->invoice->getAmount(),
-        ];
     }
 
     private function getMode(): string

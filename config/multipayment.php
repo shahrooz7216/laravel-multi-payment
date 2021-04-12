@@ -5,7 +5,7 @@ return [
     /**
      * set default gateway
      * 
-     * supported pattern --> GATEWAY_NAME.GATEWAY_CONFIG_KEY 
+     * valid pattern --> GATEWAY_NAME.GATEWAY_CONFIG_KEY 
      */
     'default_gateway' => env('DEFAULT_GATEWAY', 'zarinpal.default'),
 

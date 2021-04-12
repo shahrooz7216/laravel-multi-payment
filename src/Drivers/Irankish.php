@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers;
 
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\RedirectionForm;
@@ -53,6 +54,9 @@ class Irankish extends Driver
 
         if ($status != $this->invoice->getAmount()) {
             $message = $this->getStatusMessage((int) $status);
+            if ($status == $this->getPaymentAlreadyVerifiedStatusCode()) {
+                throw new PaymentAlreadyVerifiedException($message, $status);
+            }
             throw new PaymentFailedException($message, $status);
         }
 
@@ -76,7 +80,7 @@ class Irankish extends Driver
             'Description' => $description,
             'RevertURL' => $this->settings['callback_url'],
             'InvoiceNumber' => crc32($this->invoice->getUuid()),
-            'PaymentId' => crc32($this->invoice->getUuid()),
+            'PaymentId' => $this->invoice->getPaymentId(),
             'SpecialPaymentId' => crc32($this->invoice->getUuid()),
         ];
     }
@@ -92,11 +96,6 @@ class Irankish extends Driver
         ];
     }
 
-    protected function getSuccessResponseStatusCode()
-    {
-        return 100;
-    }
-
     protected function getStatusMessage($status): string
     {
         $translations = [
@@ -109,21 +108,21 @@ class Irankish extends Driver
             133 => 'کارت منقضی شده است',
             140 => 'زمان مورد نظر به پایان رسیده است',
             150 => 'خطای داخلی بانک به وجود آمده است',
-            160 => 'خطای انقضای کارت به وجود امده یا اطلاعات CVV2 اشتباه است',
+            160 => 'خطای انقضای کارت به وجود آمده یا اطلاعات CVV2 اشتباه است',
             166 => 'بانک صادر کننده کارت شما مجوز انجام تراکنش را صادر نکرده است',
             167 => 'خطا در مبلغ تراکنش',
             200 => 'مبلغ تراکنش بیش از حدنصاب مجاز',
             201 => 'مبلغ تراکنش بیش از حدنصاب مجاز برای روز کاری',
             202 => 'مبلغ تراکنش بیش از حدنصاب مجاز برای ماه کاری',
             203 => 'تعداد تراکنشهای مجاز از حد نصاب گذشته است',
-            499 => 'خطای سیستمی ، لطفا مجددا تالش فرمایید',
+            499 => 'خطای سیستمی، لطفا مجددا تالش فرمایید',
             500 => 'خطا در تایید تراکنش های خرد شده',
             501 => 'خطا در تایید تراکتش ، ویزگی تایید خودکار',
             502 => 'آدرس آی پی نا معتبر',
             503 => 'پذیرنده در حالت تستی می باشد ، مبلغ نمی تواند بیش از حد مجاز تایین شده برای پذیرنده تستی باشد',
             504 => 'خطا در بررسی الگوریتم شناسه پرداخت',
-            505 => 'مدت زمان الزم برای انجام تراکنش تاییدیه به پایان رسیده است',
-            506 => 'ذیرنده یافت نشد',
+            505 => 'مدت زمان الزام برای انجام تراکنش تاییدیه به پایان رسیده است',
+            506 => 'پذیرنده یافت نشد',
             507 => 'توکن نامعتبر/طول عمر توکن منقضی شده است',
             508 => 'توکن مورد نظر یافت نشد و یا منقضی شده است',
             509 => 'خطا در پارامترهای اجباری خرید تسهیم شده',
@@ -131,17 +130,27 @@ class Irankish extends Driver
             511 => 'حساب مسدود است',
             512 => 'حساب تعریف نشده است',
             513 => 'شماره تراکنش تکراری است',
-            -20 => 'در درخواست کارکتر های غیر مجاز وجو دارد',
+            -20 => 'در درخواست کاراکتر های غیرمجاز وجود دارد',
             -30 => 'تراکنش قبلا برگشت خورده است',
             -50 => 'طول رشته درخواست غیر مجاز است',
             -51 => 'در در خواست خطا وجود دارد',
             -80 => 'تراکنش مورد نظر یافت نشد',
-            -81 => ' خطای داخلی بانک',
+            -81 => 'خطای داخلی بانک',
             -90 => 'تراکنش قبلا تایید شده است'
         ];
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
         return array_key_exists($status, $translations) ? $translations[$status] : $unknownError;
+    }
+
+    protected function getSuccessResponseStatusCode()
+    {
+        return 100;
+    }
+
+    private function getPaymentAlreadyVerifiedStatusCode()
+    {
+        return -90;
     }
 
     protected function getPurchaseUrl(): string
