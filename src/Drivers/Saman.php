@@ -14,10 +14,9 @@ class Saman extends Driver
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
-        $response = Http::withHeaders($this->getRequestHeaders())
-            ->post($this->getPurchaseUrl(), $data);
+        $response = Http::post($this->getPurchaseUrl(), $data);
         if ($response->successful()) {
-            if ($response['status'] != (int) $this->getSuccessResponseStatusCode()) {
+            if ($response['status'] != $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
             } else {
                 $token = $response['token'];
@@ -27,7 +26,7 @@ class Saman extends Driver
             throw new HttpResponseException($response->body(), $response->status());
         }
 
-        return $this->invoice->getUuid();
+        return $this->invoice->getPaymentId();
     }
 
     public function pay(): RedirectionForm
@@ -43,74 +42,18 @@ class Saman extends Driver
     public function verify(): string
     {
         $data = $this->getVerificationData();
-        $response = Http::withHeaders($this->getRequestHeaders())
-            ->post($this->getVerificationUrl(), $data);
+        $response = Http::post($this->getVerificationUrl(), $data);
         if ($response->successful()) {
             $responseCode = (int) $response->body();
             if ($responseCode < 0) {
                 throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
             } else {
-                $this->invoice->setTransactionId(request('RefNum'));
+                $this->invoice->setTransactionId(request('RefNum') ?? $this->invoice->getTransactionId());
                 return request('TraceNo');
             }
         } else {
             throw new HttpResponseException($response->body(), $response->status());
         }
-    }
-
-    protected function getSuccessResponseStatusCode(): string
-    {
-        return "1";
-    }
-
-    protected function getStatusMessage($status): string
-    {
-        $messages = array(
-            -1 => 'خطا در پردازش اطلاعات ارسالی (مشکل در یکی از ورودی ها و ناموفق بودن فراخوانی متد برگشت تراکنش)',
-            -3 => 'ورودیها حاوی کارکترهای غیرمجاز میباشند.',
-            -4 => 'کلمه عبور یا کد فروشنده اشتباه است (Merchant Authentication Failed)',
-            -6 => 'سند قبال برگشت کامل یافته است. یا خارج از زمان 30 دقیقه ارسال شده است.',
-            -7 => 'رسید دیجیتالی تهی است.',
-            -8 => 'طول ورودیها بیشتر از حد مجاز است.',
-            -9 => 'وجود کارکترهای غیرمجاز در مبلغ برگشتی.',
-            -10 => 'رسید دیجیتالی به صورت Base64 نیست (حاوی کاراکترهای غیرمجاز است)',
-            -11 => 'طول ورودیها کمتر از حد مجاز است.',
-            -12 => 'مبلغ برگشتی منفی است.',
-            -13 => 'مبلغ برگشتی برای برگشت جزئی بیش از مبلغ برگشت نخوردهی رسید دیجیتالی است.',
-            -14 => 'چنین تراکنشی تعریف نشده است.',
-            -15 => 'مبلغ برگشتی به صورت اعشاری داده شده است.',
-            -16 => 'خطای داخلی سیستم',
-            -17 => 'برگشت زدن جزیی تراکنش مجاز نمی باشد.',
-            -18 => 'IP Address فروشنده نا معتبر است و یا رمز تابع بازگشتی (reverseTransaction) اشتباه است.',
-            1 => 'کاربر انصراف داده است.',
-            2 => 'پرداخت با موفقیت انجام شد.',
-            3 => 'پرداخت انجام نشد.',
-            4 => 'کاربر در بازه زمانی تعیین شده پاسخی ارسال نکرده است.',
-            5 => 'پارامترهای ارسالی نامعتبر است.',
-            8 => 'آدرس سرور پذیرنده نامعتبر است.',
-            10 => 'توکن ارسال شده یافت نشد.',
-            11 => 'با این شماره ترمینال فقط تراکنش های توکنی قابل پرداخت هستند.',
-            12 => 'شماره ترمینال ارسال شده یافت نشد.',
-        );
-
-        $unknownError = 'خطای ناشناخته رخ داده است.';
-
-        return array_key_exists($status, $messages) ? $messages[$status] : $unknownError;
-    }
-
-    protected function getPurchaseUrl(): string
-    {
-        return 'https://sep.shaparak.ir/MobilePG/MobilePayment';
-    }
-
-    protected function getPaymentUrl(): string
-    {
-        return 'https://sep.shaparak.ir/OnlinePG/OnlinePG';
-    }
-
-    protected function getVerificationUrl(): string
-    {
-        return 'https://verify.sep.ir/Payments/ReferencePayment.asmx';
     }
 
     protected function getPurchaseData(): array
@@ -126,20 +69,69 @@ class Saman extends Driver
             'Amount' => $this->invoice->getAmount(),
             'RedirectUrl' => $this->settings['callback_url'],
             'CellNumber' => $mobile,
-            'ResNum' => $this->invoice->getUuid(),
+            'ResNum' => $this->invoice->getPaymentId(),
         ];
     }
 
     protected function getVerificationData(): array
     {
         return [
-            'RefNum' => request('RefNum'),
+            'RefNum' => request('RefNum') ?? $this->invoice->getTransactionId(),
             'MerchantID' => $this->settings['terminal_id']
         ];
     }
 
-    private function getRequestHeaders()
+    protected function getStatusMessage($status): string
     {
-        return $this->settings['request_headers'] ?? [];
+        $messages = [
+            -1 => 'خطا در پردازش اطلاعات ارسالی (مشکل در یکی از ورودی ها و ناموفق بودن فراخوانی متد برگشت تراکنش)',
+            -3 => 'ورودیها حاوی کاراکترهای غیرمجاز میباشند.',
+            -4 => 'کلمه عبور یا کد فروشنده اشتباه است (Merchant Authentication Failed)',
+            -6 => 'سند قبال برگشت کامل یافته است. یا خارج از زمان 30 دقیقه ارسال شده است.',
+            -7 => 'رسید دیجیتالی تهی است.',
+            -8 => 'طول ورودیها بیشتر از حد مجاز است.',
+            -9 => 'وجود کاراکترهای غیرمجاز در مبلغ برگشتی.',
+            -10 => 'رسید دیجیتالی به صورت Base64 نیست (حاوی کاراکترهای غیرمجاز است)',
+            -11 => 'طول ورودیها کمتر از حد مجاز است.',
+            -12 => 'مبلغ برگشتی منفی است.',
+            -13 => 'مبلغ برگشتی برای برگشت جزئی بیش از مبلغ برگشت نخورده ی رسید دیجیتالی است.',
+            -14 => 'چنین تراکنشی تعریف نشده است.',
+            -15 => 'مبلغ برگشتی به صورت اعشاری داده شده است.',
+            -16 => 'خطای داخلی سیستم',
+            -17 => 'برگشت زدن جزیی تراکنش مجاز نمی باشد.',
+            -18 => 'IP Address فروشنده نا معتبر است و یا رمز تابع بازگشتی (reverseTransaction) اشتباه است.',
+            1 => 'کاربر انصراف داده است.',
+            2 => 'پرداخت با موفقیت انجام شد.',
+            3 => 'پرداخت انجام نشد.',
+            4 => 'کاربر در بازه زمانی تعیین شده پاسخی ارسال نکرده است.',
+            5 => 'پارامترهای ارسالی نامعتبر است.',
+            8 => 'آدرس سرور پذیرنده نامعتبر است.',
+            10 => 'توکن ارسال شده یافت نشد.',
+            11 => 'با این شماره ترمینال فقط تراکنش های توکنی قابل پرداخت هستند.',
+            12 => 'شماره ترمینال ارسال شده یافت نشد.',
+        ];
+        $unknownError = 'خطای ناشناخته رخ داده است.';
+
+        return array_key_exists($status, $messages) ? $messages[$status] : $unknownError;
+    }
+
+    protected function getSuccessResponseStatusCode(): int
+    {
+        return 1;
+    }
+
+    protected function getPurchaseUrl(): string
+    {
+        return 'https://sep.shaparak.ir/MobilePG/MobilePayment';
+    }
+
+    protected function getPaymentUrl(): string
+    {
+        return 'https://sep.shaparak.ir/OnlinePG/OnlinePG';
+    }
+
+    protected function getVerificationUrl(): string
+    {
+        return 'https://verify.sep.ir/Payments/ReferencePayment.asmx';
     }
 }

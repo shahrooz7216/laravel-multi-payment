@@ -11,6 +11,7 @@ class Invoice
     protected string $uuid;
     protected string $transactionId;
     protected ?int $userId = null;
+    protected ?int $paymentId = null;
     protected ?string $token = null;
     protected ?string $email = null;
     protected ?string $description = null;
@@ -71,6 +72,12 @@ class Invoice
         return $this;
     }
 
+    public function setPaymentId(int $paymentId): Invoice
+    {
+        $this->paymentId = $paymentId;
+        return $this;
+    }
+
     public function getAmount()
     {
         return $this->amount;
@@ -111,9 +118,18 @@ class Invoice
         return $this->userId;
     }
 
+    public function getPaymentId(): ?int
+    {
+        if (empty($this->paymentId)) {
+            $this->paymentId = crc32($this->getUuid());
+        }
+        return $this->paymentId;
+    }
+
     public function getCustomerInfo(): array
     {
         return [
+            'user_id' => $this->getUserId(),
             'phone' => $this->getPhoneNumber(),
             'email' => $this->getEmail(),
             'description' => $this->getDescription()

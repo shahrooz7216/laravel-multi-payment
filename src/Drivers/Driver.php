@@ -22,19 +22,19 @@ abstract class Driver implements DriverInterface
 
     abstract public function verify(): string;
 
+    abstract protected function getPurchaseData(): array;
+
+    abstract protected function getVerificationData(): array;
+
     abstract protected function getStatusMessage($statusCode): string;
+
+    abstract protected function getSuccessResponseStatusCode();
 
     abstract protected function getPurchaseUrl(): string;
 
     abstract protected function getPaymentUrl(): string;
 
     abstract protected function getVerificationUrl(): string;
-
-    abstract protected function getSuccessResponseStatusCode();
-
-    abstract protected function getPurchaseData(): array;
-
-    abstract protected function getVerificationData(): array;
 
     protected function redirectWithForm($action, array $inputs = [], $method = 'POST'): RedirectionForm
     {
