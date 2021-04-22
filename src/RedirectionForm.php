@@ -25,7 +25,7 @@ class RedirectionForm
         return $this->inputs;
     }
 
-    public function getAction(): string
+    public function getUrl(): string
     {
         return $this->action;
     }
@@ -33,10 +33,15 @@ class RedirectionForm
     public function getData(): array
     {
         return [
-            "action" => $this->getAction(),
+            "action" => $this->getUrl(),
             "inputs" => $this->getInputs(),
             "method" => $this->getMethod(),
         ];
+    }
+
+    public function toJson()
+    {
+        return $this->getData();
     }
 
     public function render()
@@ -44,13 +49,8 @@ class RedirectionForm
         return view('MultiPayment::redirect-to-gateway', $this->getData());
     }
 
-    public function json($options = JSON_UNESCAPED_UNICODE)
+    public function toJsonResponse()
     {
-        return response()->json($this->getData(), 200, [], $options);
-    }
-
-    public function __toString()
-    {
-        return json_encode($this->getData(), JSON_UNESCAPED_UNICODE);
+        return response()->json($this->toJson());
     }
 }
