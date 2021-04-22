@@ -21,11 +21,13 @@ return [
     'default' => [
         'terminal_id' => '',
         'callback_url' => 'https://yoursite.com/path/to',
+        'callback_method' => 'POST', // Supported values: POST, GET
         'description' => 'payment using saman',
     ],
     'other' => [
         'terminal_id' => '',
         'callback_url' => 'https://yoursite.com/path/to',
+        'callback_method' => 'POST',
         'description' => 'payment using saman',
     ]
 ];
