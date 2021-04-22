@@ -14,7 +14,7 @@ class Zarinpal extends Driver
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
-        $soapOptions = $this->settings['soap_options'] ?? null;
+        $soapOptions = $this->getSoapOptions();
         $client = new SoapClient($this->getPurchaseUrl(), $soapOptions);
         $result = $client->PaymentRequest($data);
         if ($result->Status != $this->getSuccessResponseStatusCode() or empty($result->Authority)) {
@@ -46,7 +46,7 @@ class Zarinpal extends Driver
             throw new PaymentFailedException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
         }
         $data = $this->getVerificationData();
-        $soapOptions = $this->settings['soap_options'] ?? null;
+        $soapOptions = $this->getSoapOptions();
         $client = new SoapClient($this->getVerificationUrl(), $soapOptions);
         $result = $client->PaymentVerification($data);
         if ($result->Status != $this->getSuccessResponseStatusCode()) {
@@ -178,5 +178,10 @@ class Zarinpal extends Driver
     private function getMode(): string
     {
         return strtolower(trim($this->settings['mode']));
+    }
+
+    private function getSoapOptions(): ?array
+    {
+        return config('gateway_mellat.soap_options');
     }
 }

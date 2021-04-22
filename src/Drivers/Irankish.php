@@ -13,7 +13,7 @@ class Irankish extends Driver
 {
     public function purchase(): string
     {
-        $soapOptions = $this->settings['soap_options'] ?? null;
+        $soapOptions = $this->getSoapOptions();
         $data = $this->getPurchaseData();
         $soap = new SoapClient($this->getPurchaseUrl(), $soapOptions);
         $response = $soap->MakeToken($data);
@@ -44,7 +44,7 @@ class Irankish extends Driver
             $message = $this->getStatusMessage((int) request('ResultCode'));
             throw new PaymentFailedException($message, $status);
         }
-        $soapOptions = $this->settings['soap_options'] ?? null;
+        $soapOptions = $this->getSoapOptions();
         $data = $this->getVerificationData();
         $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
 
@@ -166,5 +166,10 @@ class Irankish extends Driver
     protected function getVerificationUrl(): string
     {
         return 'https://ikc.shaparak.ir/TVerify/Verify.svc';
+    }
+
+    private function getSoapOptions(): ?array
+    {
+        return config('gateway_irankish.soap_options');
     }
 }

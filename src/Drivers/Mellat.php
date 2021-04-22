@@ -13,7 +13,7 @@ class Mellat extends Driver
 {
     public function purchase(): string
     {
-        $soapOptions = $this->settings['soap_options'] ?? null;
+        $soapOptions = $this->getSoapOptions();
         $data = $this->getPurchaseData();
         $soap = new SoapClient($this->getPurchaseUrl(), $soapOptions);
         $response = $soap->bpPayRequest($data);
@@ -45,7 +45,7 @@ class Mellat extends Driver
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
-        $soapOptions = $this->settings['soap_options'] ?? null;
+        $soapOptions = $this->getSoapOptions();
         $data = $this->getVerificationData();
         $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
         $verificationResponse = $soap->bpVerifyRequest($data);
@@ -202,5 +202,10 @@ class Mellat extends Driver
     protected function getVerificationUrl(): string
     {
         return 'https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl';
+    }
+
+    private function getSoapOptions(): ?array
+    {
+        return config('gateway_mellat.soap_options');
     }
 }
