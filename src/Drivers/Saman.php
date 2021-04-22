@@ -18,10 +18,9 @@ class Saman extends Driver
         if ($response->successful()) {
             if ($response['status'] != $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
-            } else {
-                $token = $response['token'];
-                $this->invoice->setToken($token);
             }
+            $token = $response['token'];
+            $this->invoice->setToken($token);
         } else {
             throw new HttpResponseException($response->body(), $response->status());
         }
@@ -33,7 +32,8 @@ class Saman extends Driver
     {
         $payUrl = $this->getPaymentUrl();
         $data = [
-            'token' => $this->invoice->getToken()
+            'Token' => $this->invoice->getToken(),
+            'GetMethod' => $this->getCallbackMethod()
         ];
 
         return $this->redirectWithForm($payUrl, $data);
@@ -47,13 +47,12 @@ class Saman extends Driver
             $responseCode = (int) $response->body();
             if ($responseCode < 0) {
                 throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
-            } else {
-                $this->invoice->setTransactionId(request('RefNum') ?? $this->invoice->getTransactionId());
-                return request('TraceNo');
             }
-        } else {
-            throw new HttpResponseException($response->body(), $response->status());
+            $this->invoice->setTransactionId(request('RefNum') ?? $this->invoice->getTransactionId());
+
+            return request('TraceNo');
         }
+        throw new HttpResponseException($response->body(), $response->status());
     }
 
     protected function getPurchaseData(): array
@@ -133,5 +132,13 @@ class Saman extends Driver
     protected function getVerificationUrl(): string
     {
         return 'https://verify.sep.ir/Payments/ReferencePayment.asmx';
+    }
+
+    private function getCallbackMethod()
+    {
+        if (isset($this->settings['callback_method']) and strtoupper($this->settings['callback_method']) == 'GET') {
+            return "true";
+        }
+        return null;
     }
 }
