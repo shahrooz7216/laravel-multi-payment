@@ -1,7 +1,7 @@
 <?php
 
 return [
-    
+
     /**
      *  driver class namespace
      */
@@ -18,15 +18,15 @@ return [
      *  gateway configurations
      */
     'default' => [
-        'mode'        => 'normal', // supported values: normal, sandbox, zaringate
         'merchant_id'  => '',
         'callback_url' => 'https://yoursite.com/path/to',
+        'mode'        => 'normal', // Supported values: normal, sandbox, zaringate
         'description' => 'payment using zarinpal',
     ],
     'other' => [
-        'mode'        => 'sandbox', // supported values: normal, sandbox, zaringate
         'merchant_id'  => '',
         'callback_url' => 'https://yoursite.com/path/to',
+        'mode'        => 'sandbox',
         'description' => 'payment using zarinpal',
     ]
 ];
