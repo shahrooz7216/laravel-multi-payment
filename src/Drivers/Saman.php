@@ -2,12 +2,13 @@
 
 namespace Omalizadeh\MultiPayment\Drivers;
 
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use SoapClient;
+use Illuminate\Support\Facades\Http;
+use Omalizadeh\MultiPayment\RedirectionForm;
+use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\RedirectionForm;
-use Illuminate\Support\Facades\Http;
-use SoapClient;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 
 class Saman extends Driver
 {

@@ -5,7 +5,7 @@ namespace Omalizadeh\MultiPayment;
 use Closure;
 use Exception;
 use ReflectionClass;
-use Omalizadeh\MultiPayment\Drivers\DriverInterface;
+use Omalizadeh\MultiPayment\Drivers\Contracts\DriverInterface;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
