@@ -16,6 +16,13 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Saman::class,
 
     /**
+     *  soap client options
+     */
+    'soap_options' => [
+        'encoding' => 'UTF-8'
+    ],
+
+    /**
      *  gateway configurations
      */
     'default' => [
