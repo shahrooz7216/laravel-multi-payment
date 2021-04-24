@@ -5,9 +5,9 @@ namespace Omalizadeh\MultiPayment\Drivers;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use Illuminate\Support\Facades\Http;
+use SoapClient;
 
 class Saman extends Driver
 {
@@ -22,7 +22,7 @@ class Saman extends Driver
             $token = $response['token'];
             $this->invoice->setToken($token);
         } else {
-            throw new HttpResponseException($response->body(), $response->status());
+            throw new PaymentFailedException($response->body(), $response->status());
         }
 
         return $this->invoice->getPaymentId();
@@ -41,18 +41,20 @@ class Saman extends Driver
 
     public function verify(): string
     {
-        $data = $this->getVerificationData();
-        $response = Http::post($this->getVerificationUrl(), $data);
-        if ($response->successful()) {
-            $responseCode = (int) $response->body();
-            if ($responseCode < 0) {
-                throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
-            }
-            $this->invoice->setTransactionId(request('RefNum') ?? $this->invoice->getTransactionId());
-
-            return request('TraceNo');
+        if (!empty(request('Status')) and request('Status') != $this->getSuccessfulPaymentStatusCode()) {
+            $statusCode = (int) request('Status');
+            throw new PaymentFailedException($this->getStatusMessage($statusCode), $statusCode);
         }
-        throw new HttpResponseException($response->body(), $response->status());
+        $data = $this->getVerificationData();
+        $soapOptions = $this->getSoapOptions();
+        $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
+        $responseCode = (int) $soap->verifyTransaction($data['RefNum'], $data['MerchantID']);
+        if ($responseCode < 0) {
+            throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
+        }
+        $this->invoice->setTransactionId(request('RefNum') ?? $this->invoice->getTransactionId());
+
+        return request('TraceNo');
     }
 
     protected function getPurchaseData(): array
@@ -119,6 +121,11 @@ class Saman extends Driver
         return 1;
     }
 
+    protected function getSuccessfulPaymentStatusCode(): int
+    {
+        return 2;
+    }
+
     protected function getPurchaseUrl(): string
     {
         return 'https://sep.shaparak.ir/MobilePG/MobilePayment';
@@ -131,7 +138,7 @@ class Saman extends Driver
 
     protected function getVerificationUrl(): string
     {
-        return 'https://verify.sep.ir/Payments/ReferencePayment.asmx';
+        return 'https://verify.sep.ir/Payments/ReferencePayment.asmx?WSDL';
     }
 
     private function getCallbackMethod()
@@ -140,5 +147,12 @@ class Saman extends Driver
             return "true";
         }
         return null;
+    }
+
+    private function getSoapOptions(): array
+    {
+        return config('gateway_saman.soap_options', [
+            'encoding' => 'UTF-8'
+        ]);
     }
 }
