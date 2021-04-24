@@ -204,8 +204,10 @@ class Mellat extends Driver
         return 'https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl';
     }
 
-    private function getSoapOptions(): ?array
+    private function getSoapOptions(): array
     {
-        return config('gateway_mellat.soap_options');
+        return config('gateway_mellat.soap_options', [
+            'encoding' => 'UTF-8'
+        ]);
     }
 }

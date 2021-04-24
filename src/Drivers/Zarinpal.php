@@ -75,7 +75,7 @@ class Zarinpal extends Driver
 
         return [
             'MerchantID' => $this->settings['merchant_id'],
-            'Amount' => $this->invoice->getAmount(),
+            'Amount' => $this->invoice->getAmountInTomans(),
             'CallbackURL' => $this->settings['callback_url'],
             'Description' => $description,
             'Mobile' => $mobile,
@@ -89,7 +89,7 @@ class Zarinpal extends Driver
         return [
             'MerchantID' => $this->settings['merchant_id'],
             'Authority' => $authority,
-            'Amount' => $this->invoice->getAmount(),
+            'Amount' => $this->invoice->getAmountInTomans(),
         ];
     }
 
@@ -180,8 +180,10 @@ class Zarinpal extends Driver
         return strtolower(trim($this->settings['mode']));
     }
 
-    private function getSoapOptions(): ?array
+    private function getSoapOptions(): array
     {
-        return config('gateway_mellat.soap_options');
+        return config('gateway_mellat.soap_options', [
+            'encoding' => 'UTF-8'
+        ]);
     }
 }

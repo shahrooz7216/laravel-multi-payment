@@ -155,7 +155,7 @@ class Irankish extends Driver
 
     protected function getPurchaseUrl(): string
     {
-        return 'https://ikc.shaparak.ir/TToken/Tokens.svc';
+        return 'https://ikc.shaparak.ir/TToken/Tokens.svc?WSDL';
     }
 
     protected function getPaymentUrl(): string
@@ -165,11 +165,13 @@ class Irankish extends Driver
 
     protected function getVerificationUrl(): string
     {
-        return 'https://ikc.shaparak.ir/TVerify/Verify.svc';
+        return 'https://ikc.shaparak.ir/TVerify/Verify.svc?WSDL';
     }
 
-    private function getSoapOptions(): ?array
+    private function getSoapOptions(): array
     {
-        return config('gateway_irankish.soap_options');
+        return config('gateway_irankish.soap_options', [
+            'encoding' => 'UTF-8'
+        ]);
     }
 }
