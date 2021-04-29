@@ -183,7 +183,7 @@ class Zarinpal extends Driver
 
     private function getSoapOptions(): array
     {
-        return config('gateway_mellat.soap_options', [
+        return config('gateway_zarinpal.soap_options', [
             'encoding' => 'UTF-8'
         ]);
     }
