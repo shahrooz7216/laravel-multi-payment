@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers;
+namespace Omalizadeh\MultiPayment\Drivers\Contracts;
 
 use Omalizadeh\MultiPayment\RedirectionForm;
 

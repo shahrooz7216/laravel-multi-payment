@@ -2,12 +2,13 @@
 
 namespace Omalizadeh\MultiPayment\Drivers;
 
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
+use SoapClient;
+use Omalizadeh\MultiPayment\RedirectionForm;
+use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\RedirectionForm;
-use SoapClient;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 
 class Mellat extends Driver
 {
@@ -204,8 +205,10 @@ class Mellat extends Driver
         return 'https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl';
     }
 
-    private function getSoapOptions(): ?array
+    private function getSoapOptions(): array
     {
-        return config('gateway_mellat.soap_options');
+        return config('gateway_mellat.soap_options', [
+            'encoding' => 'UTF-8'
+        ]);
     }
 }
