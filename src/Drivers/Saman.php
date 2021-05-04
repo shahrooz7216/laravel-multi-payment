@@ -23,7 +23,7 @@ class Saman extends Driver
             $token = $response['token'];
             $this->invoice->setToken($token);
         } else {
-            throw new PaymentFailedException($response->body(), $response->status());
+            throw new PurchaseFailedException($response->body(), $response->status());
         }
 
         return $this->invoice->getPaymentId();
