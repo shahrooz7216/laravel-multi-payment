@@ -1,15 +1,16 @@
-# Laravel Multi Payment
+[![Latest Stable Version](https://poser.pugx.org/omalizadeh/laravel-multi-payment/v)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
+[![License](https://poser.pugx.org/omalizadeh/laravel-multi-payment/license)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
+[![Total Downloads](https://poser.pugx.org/omalizadeh/laravel-multi-payment/downloads)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
 
+# Laravel Multi Payment
 This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations. Supports laravel **v7.0+** and requires php **v7.4+**
 
 ## Supported Gateways
-
  - [Mellat (Behpardakht)](https://behpardakht.com)
  - [Saman (Sep)](https://sep.ir)
  - [Zarinpal](https://zarinpal.com)
 
 ## Installation & Configuration
-
 Install using composer
 
 ```bash 
