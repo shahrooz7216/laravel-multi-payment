@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers;
+namespace Omalizadeh\MultiPayment\Drivers\Saman;
 
 use SoapClient;
 use Illuminate\Support\Facades\Http;
@@ -15,7 +15,8 @@ class Saman extends Driver
     public function purchase(): string
     {
         $data = $this->getPurchaseData();
-        $response = Http::post($this->getPurchaseUrl(), $data);
+        $headers = $this->getRequestHeaders();
+        $response = Http::withHeaders($headers)->post($this->getPurchaseUrl(), $data);
         if ($response->successful()) {
             if ($response['status'] != $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
@@ -26,7 +27,7 @@ class Saman extends Driver
             throw new PurchaseFailedException($response->body(), $response->status());
         }
 
-        return $this->invoice->getPaymentId();
+        return $this->invoice->getInvoiceId();
     }
 
     public function pay(): RedirectionForm
@@ -53,7 +54,10 @@ class Saman extends Driver
         if ($responseCode < 0) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
-        $this->invoice->setTransactionId(request('RefNum') ?? $this->invoice->getTransactionId());
+        $this->invoice->setTransactionId(request('RefNum'));
+        $this->invoice->setReferenceId(request('RRN'));
+        $this->invoice->setInvoiceId(request('ResNum'));
+        $this->invoice->setCardNo(request('SecurePan'));
 
         return request('TraceNo');
     }
@@ -71,7 +75,7 @@ class Saman extends Driver
             'Amount' => $this->invoice->getAmount(),
             'RedirectUrl' => $this->settings['callback_url'],
             'CellNumber' => $mobile,
-            'ResNum' => $this->invoice->getPaymentId(),
+            'ResNum' => $this->invoice->getInvoiceId(),
         ];
     }
 
@@ -154,6 +158,14 @@ class Saman extends Driver
     {
         return config('gateway_saman.soap_options', [
             'encoding' => 'UTF-8'
+        ]);
+    }
+
+    private function getRequestHeaders(): array
+    {
+        return config('gateway_saman.request_headers', [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
         ]);
     }
 }
