@@ -47,9 +47,9 @@ class GatewayPayment
 
     public function verify(): Receipt
     {
-        $refId = $this->getDriver()->verify();
+        $traceNumber = $this->getDriver()->verify();
 
-        return new Receipt($refId, $this->getInvoice(), $this->getGatewayName(), $this->getGatewayConfigKey());
+        return new Receipt($traceNumber, $this->getInvoice(), $this->getGatewayName(), $this->getGatewayConfigKey());
     }
 
     protected function getSettingsConfigKey()

@@ -1,8 +1,9 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers;
+namespace Omalizadeh\MultiPayment\Drivers\Mellat;
 
 use SoapClient;
+use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
@@ -32,9 +33,13 @@ class Mellat extends Driver
     public function pay(): RedirectionForm
     {
         $paymentUrl = $this->getPaymentUrl();
+        $mobileNo = $this->invoice->getPhoneNumber();
+        if (!empty($mobileNo)) {
+            $mobileNo = $this->checkPhoneNumberFormat($mobileNo);
+        }
         $data = [
             'RefId' => $this->invoice->getTransactionId(),
-            'mobileNo' => $this->invoice->getPhoneNumber()
+            'mobileNo' => $mobileNo
         ];
 
         return $this->redirectWithForm($paymentUrl, $data);
@@ -67,6 +72,9 @@ class Mellat extends Driver
             }
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
+        $this->invoice->setReferenceId(request('RefId'));
+        $this->invoice->setTransactionId(request('RefId'));
+        $this->invoice->setCardNo(request('CardHolderPAN'));
 
         return $data['saleReferenceId'];
     }
@@ -93,7 +101,7 @@ class Mellat extends Driver
             'amount' => $this->invoice->getAmount(),
             'localDate' => now()->format('Ymd'),
             'localTime' => now()->format('Gis'),
-            'orderId' => $this->invoice->getPaymentId(),
+            'orderId' => $this->invoice->getInvoiceId(),
             'additionalData' => $description,
             'payerId' => $this->invoice->getUserId()
         );
@@ -210,5 +218,19 @@ class Mellat extends Driver
         return config('gateway_mellat.soap_options', [
             'encoding' => 'UTF-8'
         ]);
+    }
+
+    private function checkPhoneNumberFormat(string $phoneNumber): string
+    {
+        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+            return $phoneNumber;
+        }
+        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '0')) {
+            return Str::replaceFirst('0', '98', $phoneNumber);
+        }
+        if (strlen($phoneNumber) == 10) {
+            return '98' . $phoneNumber;
+        }
+        return $phoneNumber;
     }
 }

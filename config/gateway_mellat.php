@@ -5,7 +5,7 @@ return [
     /**
      *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Mellat::class,
+    'driver' => Omalizadeh\MultiPayment\Drivers\Mellat\Mellat::class,
 
     /**
      *  soap client options

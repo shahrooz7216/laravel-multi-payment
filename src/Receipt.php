@@ -2,33 +2,44 @@
 
 namespace Omalizadeh\MultiPayment;
 
-use Carbon\Carbon;
-
 class Receipt
 {
-    protected string $gatewayConfigKey;
-    protected Carbon $datetime;
     protected Invoice $invoice;
     protected string $gatewayName;
-    protected string $referenceId;
+    protected string $traceNumber;
+    protected string $gatewayConfigKey;
 
-    public function __construct($referenceId, Invoice $invoice, string $gatewayName, string $gatewayConfigKey)
+    public function __construct($traceNumber, Invoice $invoice, string $gatewayName, string $gatewayConfigKey)
     {
-        $this->referenceId = $referenceId;
+        $this->traceNumber = $traceNumber;
         $this->invoice = $invoice;
         $this->gatewayName = $gatewayName;
         $this->gatewayConfigKey = $gatewayConfigKey;
-        $this->datetime = now();
     }
 
-    public function getReferenceId(): string
+    public function getInvoiceId(): ?string
     {
-        return $this->referenceId;
+        return $this->invoice->getInvoiceId();
     }
 
-    public function getDate(): Carbon
+    public function getTraceNumber(): string
     {
-        return $this->datetime;
+        return $this->traceNumber;
+    }
+
+    public function getTransactionId(): string
+    {
+        return $this->invoice->getTransactionId();
+    }
+
+    public function getReferenceId(): ?string
+    {
+        return $this->invoice->getReferenceId();
+    }
+
+    public function getCardNo(): ?string
+    {
+        return $this->invoice->getCardNo();
     }
 
     public function getGatewayName(): string
@@ -39,15 +50,5 @@ class Receipt
     public function getGatewayConfigKey(): string
     {
         return $this->gatewayConfigKey;
-    }
-
-    public function getTransactionId(): string
-    {
-        return $this->invoice->getTransactionId();
-    }
-
-    public function getUuid(): string
-    {
-        return $this->invoice->getUuid();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers;
+namespace Omalizadeh\MultiPayment\Drivers\Zarinpal;
 
 use SoapClient;
 use Omalizadeh\MultiPayment\RedirectionForm;
@@ -57,6 +57,7 @@ class Zarinpal extends Driver
             }
             throw new PaymentFailedException($message, $result->Status);
         }
+        $this->invoice->setReferenceId(request('Authority'));
 
         return $result->RefID;
     }

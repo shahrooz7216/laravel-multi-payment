@@ -9,11 +9,13 @@ class Invoice
 {
     protected $amount;
     protected string $uuid;
-    protected string $transactionId;
     protected ?int $userId = null;
-    protected ?int $paymentId = null;
+    protected ?string $referenceId;
     protected ?string $token = null;
     protected ?string $email = null;
+    protected ?int $invoiceId = null;
+    protected ?string $transactionId;
+    protected ?string $cardNo = null;
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
 
@@ -66,15 +68,27 @@ class Invoice
         return $this;
     }
 
+    public function setCardNo(string $cardNo): Invoice
+    {
+        $this->cardNo = $cardNo;
+        return $this;
+    }
+
+    public function setReferenceId(string $referenceId): Invoice
+    {
+        $this->referenceId = $referenceId;
+        return $this;
+    }
+
     public function setUserId(int $userId): Invoice
     {
         $this->userId = $userId;
         return $this;
     }
 
-    public function setPaymentId(int $paymentId): Invoice
+    public function setInvoiceId(int $invoiceId): Invoice
     {
-        $this->paymentId = $paymentId;
+        $this->invoiceId = $invoiceId;
         return $this;
     }
 
@@ -101,7 +115,7 @@ class Invoice
         return $this->token;
     }
 
-    public function getTransactionId(): string
+    public function getTransactionId(): ?string
     {
         return $this->transactionId;
     }
@@ -121,17 +135,27 @@ class Invoice
         return $this->email;
     }
 
+    public function getCardNo(): ?string
+    {
+        return $this->cardNo;
+    }
+
+    public function getReferenceId(): ?string
+    {
+        return $this->referenceId;
+    }
+
     public function getUserId(): ?int
     {
         return $this->userId;
     }
 
-    public function getPaymentId(): ?int
+    public function getInvoiceId(): ?int
     {
-        if (empty($this->paymentId)) {
-            $this->paymentId = crc32($this->getUuid());
+        if (empty($this->invoiceId)) {
+            $this->invoiceId = crc32($this->getUuid());
         }
-        return $this->paymentId;
+        return $this->invoiceId;
     }
 
     public function getCustomerInfo(): array
@@ -139,8 +163,7 @@ class Invoice
         return [
             'user_id' => $this->getUserId(),
             'phone' => $this->getPhoneNumber(),
-            'email' => $this->getEmail(),
-            'description' => $this->getDescription()
+            'email' => $this->getEmail()
         ];
     }
 }

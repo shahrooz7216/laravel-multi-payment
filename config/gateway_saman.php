@@ -13,7 +13,15 @@ return [
     /**
      *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Saman::class,
+    'driver' => Omalizadeh\MultiPayment\Drivers\Saman\Saman::class,
+
+    /**
+     *  Headers added to rest api calls
+     */
+    'request_headers' => [
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+    ],
 
     /**
      *  soap client options
