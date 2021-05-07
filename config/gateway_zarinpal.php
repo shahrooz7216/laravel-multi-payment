@@ -5,7 +5,7 @@ return [
     /**
      *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal::class,
+    'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal\Zarinpal::class,
 
     /**
      *  soap client options
