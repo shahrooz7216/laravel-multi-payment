@@ -17,6 +17,11 @@ class Receipt
         $this->gatewayConfigKey = $gatewayConfigKey;
     }
 
+    public function getInvoiceId(): ?string
+    {
+        return $this->invoice->getInvoiceId();
+    }
+
     public function getTraceNumber(): string
     {
         return $this->traceNumber;
