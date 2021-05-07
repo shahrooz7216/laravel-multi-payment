@@ -74,7 +74,7 @@ After gateway redirection to your app, you must create an invoice and set it's t
           $invoice->setTransactionId($transactionId);
           $gatewayPayment = new GatewayPayment($invoice, 'zarinpal.first');
           $receipt = $gatewayPayment->verify();
-          $traceNo = $receipt->getReferenceId();
+          $traceNo = $receipt->getTraceNumber();
           // Save traceNo and return response
       } catch (PaymentFailedException $exception) {
           // Handle exception for failed payments
