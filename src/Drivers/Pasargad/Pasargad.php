@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers\Pasargad;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Drivers\Pasargad\Helpers\RSAProcessor;
@@ -26,7 +27,6 @@ class Pasargad extends Driver
 
             return $data['InvoiceNumber'];
         }
-
         throw new PurchaseFailedException($response->body(), $response->status());
     }
 
@@ -79,11 +79,9 @@ class Pasargad extends Driver
         $sign = $this->signData($body);
         $headers = $this->getRequestHeaders();
         $headers = array_merge($headers, [
-            'sign' => $sign
+            'Sign' => $sign
         ]);
-        $response = Http::withHeaders($headers)->post($url, [
-            'body' => $body
-        ]);
+        $response = Http::withHeaders($headers)->post($url, $data);
 
         return $response;
     }
