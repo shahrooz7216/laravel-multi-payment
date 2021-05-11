@@ -47,26 +47,26 @@ class Pasargad extends Driver
         ];
         $response = $this->callApi($this->getCheckTransactionUrl(), $checkTransactionData);
         if ($response->successful()) {
-            $result = $response->json();
-            if ($result['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
-                throw new PaymentFailedException($result['Message'], $response->status());
+            $checkTransactionResult = $response->json();
+            if ($checkTransactionResult['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
+                throw new PaymentFailedException($checkTransactionResult['Message'], $response->status());
             }
             $verificationData = array_merge($this->getVerificationData(), [
-                'InvoiceNumber' => $result['InvoiceNumber'],
-                'InvoiceDate' => $result['InvoiceDate'],
-                'Amount' => $result['Amount'],
+                'InvoiceNumber' => $checkTransactionResult['InvoiceNumber'],
+                'InvoiceDate' => $checkTransactionResult['InvoiceDate'],
+                'Amount' => $checkTransactionResult['Amount'],
             ]);
             $response = $this->callApi($this->getVerificationUrl(), $verificationData);
             if ($response->successful()) {
-                $result = $response->json();
-                if ($result['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
-                    throw new PaymentFailedException($result['Message'], $response->status());
+                $verificationResult = $response->json();
+                if ($verificationResult['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
+                    throw new PaymentFailedException($verificationResult['Message'], $response->status());
                 }
-                $this->invoice->setTransactionId($result['TransactionReferenceID']);
-                $this->invoice->setReferenceId($result['ReferenceNumber']);
-                $this->invoice->setCardNo($result['MaskedCardNumber']);
+                $this->invoice->setTransactionId($checkTransactionResult['TransactionReferenceID']);
+                $this->invoice->setReferenceId($checkTransactionResult['ReferenceNumber']);
+                $this->invoice->setCardNo($verificationResult['MaskedCardNumber']);
 
-                return $result['TraceNumber'];
+                return $checkTransactionResult['TraceNumber'];
             }
             throw new PaymentFailedException($response->body(), $response->status());
         }
