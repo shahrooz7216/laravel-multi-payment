@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers\Saman;
 
 use SoapClient;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
@@ -67,14 +68,17 @@ class Saman extends Driver
         if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
-        $mobile = $this->invoice->getPhoneNumber();
+        $cellNumber = $this->invoice->getPhoneNumber();
+        if (!empty($cellNumber)) {
+            $cellNumber = $this->checkPhoneNumberFormat($cellNumber);
+        }
 
         return [
             'Action' => 'Token',
             'TerminalId' => $this->settings['terminal_id'],
             'Amount' => $this->invoice->getAmount(),
             'RedirectUrl' => $this->settings['callback_url'],
-            'CellNumber' => $mobile,
+            'CellNumber' => $cellNumber,
             'ResNum' => $this->invoice->getInvoiceId(),
         ];
     }
@@ -167,5 +171,19 @@ class Saman extends Driver
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         ]);
+    }
+
+    private function checkPhoneNumberFormat(string $phoneNumber): string
+    {
+        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+            return $phoneNumber;
+        }
+        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '0')) {
+            return Str::replaceFirst('0', '98', $phoneNumber);
+        }
+        if (strlen($phoneNumber) == 10) {
+            return '98' . $phoneNumber;
+        }
+        return $phoneNumber;
     }
 }
