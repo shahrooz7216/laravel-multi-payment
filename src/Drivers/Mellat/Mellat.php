@@ -74,7 +74,8 @@ class Mellat extends Driver
         }
         $this->invoice->setReferenceId(request('RefId'));
         $this->invoice->setTransactionId(request('RefId'));
-        $this->invoice->setCardNo(request('CardHolderPAN'));
+        $this->invoice->setInvoiceId(request('SaleOrderId'));
+        $this->invoice->setCardNo(request('CardHolderPan'));
 
         return $data['saleReferenceId'];
     }
