@@ -56,7 +56,7 @@ class Saman extends Driver
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
         $this->invoice->setTransactionId(request('RefNum'));
-        $this->invoice->setReferenceId(request('RRN'));
+        $this->invoice->setReferenceId(request('Rrn'));
         $this->invoice->setInvoiceId(request('ResNum'));
         $this->invoice->setCardNo(request('SecurePan'));
 
