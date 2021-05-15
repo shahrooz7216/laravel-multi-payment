@@ -13,7 +13,7 @@ class Invoice
     protected ?string $referenceId;
     protected ?string $token = null;
     protected ?string $email = null;
-    protected ?int $invoiceId = null;
+    protected ?string $invoiceId = null;
     protected ?string $transactionId;
     protected ?string $cardNo = null;
     protected ?string $description = null;
@@ -86,7 +86,7 @@ class Invoice
         return $this;
     }
 
-    public function setInvoiceId(int $invoiceId): Invoice
+    public function setInvoiceId(string $invoiceId): Invoice
     {
         $this->invoiceId = $invoiceId;
         return $this;
@@ -150,10 +150,10 @@ class Invoice
         return $this->userId;
     }
 
-    public function getInvoiceId(): ?int
+    public function getInvoiceId(): ?string
     {
         if (empty($this->invoiceId)) {
-            $this->invoiceId = crc32($this->getUuid());
+            $this->invoiceId = crc32($this->getUuid()) . rand(0, 99999);
         }
         return $this->invoiceId;
     }

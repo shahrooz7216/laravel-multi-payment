@@ -102,7 +102,7 @@ class Mellat extends Driver
             'amount' => $this->invoice->getAmount(),
             'localDate' => now()->format('Ymd'),
             'localTime' => now()->format('Gis'),
-            'orderId' => $this->invoice->getInvoiceId(),
+            'orderId' => (int)$this->invoice->getInvoiceId(),
             'additionalData' => $description,
             'payerId' => $this->invoice->getUserId()
         );
@@ -110,9 +110,9 @@ class Mellat extends Driver
 
     protected function getVerificationData(): array
     {
-        $orderId = request('SaleOrderId');
-        $verifySaleOrderId = request('SaleOrderId');
-        $verifySaleReferenceId = request('SaleReferenceId');
+        $orderId = request('SaleOrderId') ?? $this->invoice->getInvoiceId();
+        $verifySaleOrderId = request('SaleOrderId') ?? $this->invoice->getInvoiceId();
+        $verifySaleReferenceId = request('SaleReferenceId') ?? $this->invoice->getTransactionId();
 
         return array(
             'terminalId' => $this->settings['terminal_id'],
