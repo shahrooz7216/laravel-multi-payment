@@ -42,9 +42,7 @@ class Pasargad extends Driver
 
     public function verify(): string
     {
-        $checkTransactionData = [
-            'TransactionReferenceID' => request('tref')
-        ];
+        $checkTransactionData = $this->getCheckTransactionData();
         $response = $this->callApi($this->getCheckTransactionUrl(), $checkTransactionData);
         if ($response->successful()) {
             $checkTransactionResult = $response->json();
@@ -119,7 +117,7 @@ class Pasargad extends Driver
             'Mobile' => $mobile,
             'Email' => $this->invoice->getEmail(),
             'InvoiceNumber' => $this->invoice->getInvoiceId(),
-            'InvoiceDate' => now()->toDateString(),
+            'InvoiceDate' => now()->format('Y/m/d H:i:s'),
             'Timestamp' => now()->format('Y/m/d H:i:s'),
         ];
     }
@@ -130,6 +128,16 @@ class Pasargad extends Driver
             'MerchantCode' => $this->settings['merchant_code'],
             'TerminalCode' => $this->settings['terminal_code'],
             'Timestamp' => now()->format('Y/m/d H:i:s'),
+        ];
+    }
+
+    protected function getCheckTransactionData(): array
+    {
+        return [
+            'MerchantCode' => $this->settings['merchant_code'],
+            'TerminalCode' => $this->settings['terminal_code'],
+            'InvoiceNumber' => request('iN') ?? $this->invoice->getInvoiceId(),
+            'InvoiceDate' => request('iD') ?? now()->format('Y/m/d H:i:s'),
         ];
     }
 
