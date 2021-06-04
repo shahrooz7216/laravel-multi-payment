@@ -5,9 +5,12 @@
 # Laravel Multi Payment
 This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations. Supports laravel **v7.0+** and requires php **v7.4+**
 
+> [مستندات فارسی][readme-link-fa]
+
 ## Supported Gateways
  - [Mellat (Behpardakht)](https://behpardakht.com)
  - [Saman (Sep)](https://sep.ir)
+ - [Pasargad (Pep)](https://pep.co.ir)
  - [Zarinpal](https://zarinpal.com)
 
 ## Installation & Configuration
@@ -87,3 +90,5 @@ After gateway redirection to your app, you must create an invoice and set it's t
  - [Shetab Multipay](https://github.com/shetabit/multipay)
  - [Shetab Payment](https://github.com/shetabit/payment)
    
+[readme-link-fa]: README-FA.md
+[readme-link-en]: README.md
