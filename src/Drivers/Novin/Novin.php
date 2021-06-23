@@ -33,9 +33,10 @@ class Novin extends Driver
         if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
             $dataToSign = $response['DataToSign'];
             $dataUniqueId = $response['UniqueId'];
+            $signature = $this->getSignature($dataToSign);
             $tokenGenerationData = [
                 'WSContext' => $this->getAuthData(),
-                'Signature' => $dataToSign,
+                'Signature' => $signature,
                 'UniqueId' => $dataUniqueId
             ];
             $response = $this->callApi($this->getTokenGenerationUrl(), $tokenGenerationData);
@@ -57,6 +58,7 @@ class Novin extends Driver
             'Token' => $this->invoice->getToken(),
             'Language' => $this->getLanguage()
         ];
+        $payUrl .= ('?token=' . $data['Token'] . '&language=' . $data['Language']);
 
         return $this->redirectWithForm($payUrl, $data);
     }
@@ -75,7 +77,29 @@ class Novin extends Driver
             $this->invoice->setCardNo(request('CardMaskPan'));
             return request('TraceNo');
         }
-        throw new PaymentFailedException($response['Result']);
+        throw new PaymentFailedException($this->getStatusMessage($response['Result']));
+    }
+
+    private function getSignature(string $dataToSign): string
+    {
+        $unsignedFile = fopen($this->getUnsignedDataFilePath(), "w");
+        fwrite($unsignedFile, $dataToSign);
+        fclose($unsignedFile);
+        $signedFile = fopen($this->getSignedDataFilePath() . 'signed.txt', "w");
+        fwrite($signedFile, "");
+        fclose($signedFile);
+        openssl_pkcs7_sign(
+            $this->getUnsignedDataFilePath(),
+            $this->getSignedDataFilePath(),
+            'file://' . $this->settings['certificate_path'],
+            array('file://' . $this->settings['certificate_path'], $this->settings['certificate_password']),
+            array(),
+            PKCS7_NOSIGS
+        );
+        $sigendData = file_get_contents($this->getSignedDataFilePath());
+        $sigendDataParts = explode("\n\n", $sigendData, 2);
+        $signedDataFirstPart = $sigendDataParts[1];
+        return explode("\n\n", $signedDataFirstPart, 2)[0];
     }
 
     private function callApi(string $url, array $data)
@@ -88,7 +112,7 @@ class Novin extends Driver
         throw new HttpRequestFailedException($response->body(), $response->status());
     }
 
-    protected function getLoginData(): array
+    private function getLoginData(): array
     {
         if (empty($this->settings['username'])) {
             throw new InvalidConfigurationException('Username has not been set.');
@@ -103,11 +127,13 @@ class Novin extends Driver
         ];
     }
 
-    protected function getAuthData(): array
+    private function getAuthData(): array
     {
-        return array_merge($this->getLoginData(), [
+        return [
             'SessionId' => cache($this->getSessionIdCacheKey()),
-        ]);
+            'UserId' => $this->settings['username'],
+            'Password' => $this->settings['password']
+        ];
     }
 
     protected function getPurchaseData(): array
@@ -133,8 +159,8 @@ class Novin extends Driver
     {
         return [
             'WSContext' => $this->getAuthData(),
-            'Token' => request('Token') ?? $this->invoice->getToken(),
-            'RefNum' => request('RefNum') ?? $this->invoice->getTransactionId()
+            'Token' => request('token', $this->invoice->getToken()),
+            'RefNum' => request('RefNum', $this->invoice->getTransactionId())
         ];
     }
 
@@ -189,27 +215,27 @@ class Novin extends Driver
 
     protected function getLoginUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'merchantLogin';
+        return $this->getBaseRestServiceUrl() . 'merchantLogin/';
     }
 
     protected function getPurchaseUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'generateTransactionDataToSign';
+        return $this->getBaseRestServiceUrl() . 'generateTransactionDataToSign/';
     }
 
     protected function getTokenGenerationUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'generateSignedDataToken';
+        return $this->getBaseRestServiceUrl() . 'generateSignedDataToken/';
     }
 
     protected function getPaymentUrl(): string
     {
-        return 'https://pna.shaparak.ir/_ipgw_/payment';
+        return 'https://pna.shaparak.ir/_ipgw_//payment/';
     }
 
     protected function getVerificationUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'verifyMerchantTrans';
+        return $this->getBaseRestServiceUrl() . 'verifyMerchantTrans/';
     }
 
     private function getBaseRestServiceUrl(): string
@@ -227,7 +253,7 @@ class Novin extends Driver
 
     private function getSessionIdCacheKey(): string
     {
-        return config('gateway_novin.session_id_cache_key', 'novin_gateway_session_id');
+        return 'novin_gateway_session_id';
     }
 
     private function getLanguage(): string
@@ -248,5 +274,15 @@ class Novin extends Driver
         }
 
         return $phoneNumber;
+    }
+
+    private function getUnsignedDataFilePath(): string
+    {
+        return $this->settings['temp_files_dir'] . 'unsigned.txt';
+    }
+
+    private function getSignedDataFilePath()
+    {
+        return $this->settings['temp_files_dir'] . 'signed.txt';
     }
 }

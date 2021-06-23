@@ -16,11 +16,6 @@ return [
     ],
 
     /**
-     *  Cache key for storing session_id provided by gateway
-     */
-    'session_id_cache_key' => 'novin_gateway_session_id',
-
-    /**
      *  Gateway payment page language
      *  Supported values by gateway: fa, en
      */
@@ -32,6 +27,9 @@ return [
     'default' => [
         'username' => '',
         'password' => '',
+        'certificate_path' => '', // Certificate file path as string
+        'certificate_password' => '',
+        'temp_files_dir' => '', // Path to text files (unsigned & signed data)
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using eghtesade novin',
     ]
