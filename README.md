@@ -3,27 +3,41 @@
 [![Total Downloads](https://poser.pugx.org/omalizadeh/laravel-multi-payment/downloads)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
 
 # Laravel Multi Payment
-This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations. Supports laravel **v7.0+** and requires php **v7.4+**
+
+This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations.
+Supports laravel **v7.0+** and requires php **v7.4+**
+
+<div dir="rtl">
 
 > [مستندات فارسی][readme-link-fa]
+</div>
 
 ## Supported Gateways
- - [Mellat (Behpardakht)](https://behpardakht.com)
- - [Saman (Sep)](https://sep.ir)
- - [Pasargad (Pep)](https://pep.co.ir)
- - [Zarinpal](https://zarinpal.com)
+
+- [Mellat (Behpardakht)](https://behpardakht.com)
+- [Saman (Sep)](https://sep.ir)
+- [Pasargad (Pep)](https://pep.co.ir)
+- [Eghtesad Novin (Pardakht Novin)](https://pna.co.ir)
+- [Zarinpal](https://zarinpal.com)
 
 ## Installation & Configuration
+
 Install using composer
 
 ```bash 
   composer require omalizadeh/laravel-multi-payment
 ```
+
 Publish gateway config files
+
 ```bash
   php artisan vendor:publish --provider="Omalizadeh\MultiPayment\Providers\MultiPaymentServiceProvider"
 ```
-This command will publish main config file `multipayment.php` and gateway configs each in a seprated file. You can delete config files for gateways that you don't use. In main config file you can specify default driver. There is also an option for auto payment amount conversion from Iranian Tomans to Iranian Rials currency (IRR).
+
+This command will publish main config file `multipayment.php` and gateway configs each in a seprated file. You can
+delete config files for gateways that you don't use. In main config file you can specify default driver. There is also
+an option for auto payment amount conversion from Iranian Tomans to Iranian Rials currency (IRR).
+
 ```php
      /**
      * set default gateway
@@ -37,7 +51,10 @@ This command will publish main config file `multipayment.php` and gateway config
      */
     'convert_to_rials' => true
 ```
-In each gateway config file, you can specify multiple credentials and therefore you may have multiple zarinpal gateways for your app.
+
+In each gateway config file, you can specify multiple credentials and therefore you may have multiple zarinpal gateways
+for your app.
+
 ```php
      /**
      *  gateway configurations
@@ -55,10 +72,18 @@ In each gateway config file, you can specify multiple credentials and therefore 
         'description' => 'payment using zarinpal',
     ]
 ```
+
 ## Usage
-Gateway payment has three major phases. first is purchase (start process by calling gateway api for a transaction_id/token). second is payment (opening gateway payment web page). third is payment verification (checking payment was successful).
+
+Gateway payment has three major phases. first is purchase (start process by calling gateway api for a
+transaction_id/token). second is payment (opening gateway payment web page). third is payment verification (checking
+payment was successful).
+
 ### Purchase & Payment
-`Inovice` objects hold payment data. first you create an invoice, set amount and other information, then you pass invoice to a `GatewayPayment` object to init payment process.
+
+`Inovice` objects hold payment data. first you create an invoice, set amount and other information, then you pass
+invoice to a `GatewayPayment` object to init payment process.
+
 ```php
       $invoice = new Invoice(10000);
       $invoice->setPhoneNumber("989123456789");
@@ -68,8 +93,12 @@ Gateway payment has three major phases. first is purchase (start process by call
           // Save transaction_id and do stuff...
       })->pay()->render();
 ```
+
 ### Verification
-After gateway redirection to your app, you must create an invoice and set it's transaction_id then use `GatewayPayment` for invoice payment verification.
+
+After gateway redirection to your app, you must create an invoice and set it's transaction_id then use `GatewayPayment`
+for invoice payment verification.
+
 ```php
       try {
           // Get amount & transaction_id from database
@@ -87,8 +116,9 @@ After gateway redirection to your app, you must create an invoice and set it's t
 
 ## Acknowledgements
 
- - [Shetab Multipay](https://github.com/shetabit/multipay)
- - [Shetab Payment](https://github.com/shetabit/payment)
-   
+- [Shetab Multipay](https://github.com/shetabit/multipay)
+- [Shetab Payment](https://github.com/shetabit/payment)
+
 [readme-link-fa]: README-FA.md
+
 [readme-link-en]: README.md
