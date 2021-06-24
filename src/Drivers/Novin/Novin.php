@@ -15,18 +15,15 @@ class Novin extends Driver
 {
     const BANK_BUY_TRANSACTION_TYPE = 'EN_GOODS';
 
+    private ?string $sessionId = null;
+
     public function purchase(): string
     {
-        $sessionId = cache($this->getSessionIdCacheKey());
-        if (empty($sessionId)) {
-            $response = $this->callApi($this->getLoginUrl(), $this->getLoginData());
-            if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
-                cache([
-                    $this->getSessionIdCacheKey() => $response['SessionId']
-                ]);
-            } else {
-                throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
-            }
+        $response = $this->callApi($this->getLoginUrl(), $this->getLoginData());
+        if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
+            $this->sessionId = $response['SessionId'];
+        } else {
+            throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
         }
         $purchaseData = $this->getPurchaseData();
         $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
@@ -48,7 +45,6 @@ class Novin extends Driver
             throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
         }
         throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
-
     }
 
     public function pay(): RedirectionForm
@@ -85,7 +81,7 @@ class Novin extends Driver
         $unsignedFile = fopen($this->getUnsignedDataFilePath(), "w");
         fwrite($unsignedFile, $dataToSign);
         fclose($unsignedFile);
-        $signedFile = fopen($this->getSignedDataFilePath() . 'signed.txt', "w");
+        $signedFile = fopen($this->getSignedDataFilePath(), "w");
         fwrite($signedFile, "");
         fclose($signedFile);
         openssl_pkcs7_sign(
@@ -129,8 +125,12 @@ class Novin extends Driver
 
     private function getAuthData(): array
     {
+        if (!empty($this->sessionId)) {
+            return [
+                'SessionId' => $this->sessionId,
+            ];
+        }
         return [
-            'SessionId' => cache($this->getSessionIdCacheKey()),
             'UserId' => $this->settings['username'],
             'Password' => $this->settings['password']
         ];
@@ -251,11 +251,6 @@ class Novin extends Driver
         ]);
     }
 
-    private function getSessionIdCacheKey(): string
-    {
-        return 'novin_gateway_session_id';
-    }
-
     private function getLanguage(): string
     {
         return config('gateway_novin.language', 'fa');
@@ -281,7 +276,7 @@ class Novin extends Driver
         return $this->settings['temp_files_dir'] . 'unsigned.txt';
     }
 
-    private function getSignedDataFilePath()
+    private function getSignedDataFilePath(): string
     {
         return $this->settings['temp_files_dir'] . 'signed.txt';
     }
