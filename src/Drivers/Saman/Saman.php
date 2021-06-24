@@ -24,11 +24,9 @@ class Saman extends Driver
             }
             $token = $response['token'];
             $this->invoice->setToken($token);
-        } else {
-            throw new PurchaseFailedException($response->body(), $response->status());
+            return $this->invoice->getInvoiceId();
         }
-
-        return $this->invoice->getInvoiceId();
+        throw new PurchaseFailedException($response->body(), $response->status());
     }
 
     public function pay(): RedirectionForm
@@ -45,13 +43,13 @@ class Saman extends Driver
     public function verify(): string
     {
         if (!empty(request('Status')) and request('Status') != $this->getSuccessfulPaymentStatusCode()) {
-            $statusCode = (int) request('Status');
+            $statusCode = (int)request('Status');
             throw new PaymentFailedException($this->getStatusMessage($statusCode), $statusCode);
         }
         $data = $this->getVerificationData();
         $soapOptions = $this->getSoapOptions();
         $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
-        $responseCode = (int) $soap->verifyTransaction($data['RefNum'], $data['MerchantID']);
+        $responseCode = (int)$soap->verifyTransaction($data['RefNum'], $data['MerchantID']);
         if ($responseCode < 0) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
@@ -91,7 +89,7 @@ class Saman extends Driver
         ];
     }
 
-    protected function getStatusMessage($status): string
+    protected function getStatusMessage($statusCode): string
     {
         $messages = [
             -1 => 'خطا در پردازش اطلاعات ارسالی (مشکل در یکی از ورودی ها و ناموفق بودن فراخوانی متد برگشت تراکنش)',
@@ -122,7 +120,7 @@ class Saman extends Driver
         ];
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
-        return array_key_exists($status, $messages) ? $messages[$status] : $unknownError;
+        return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $unknownError;
     }
 
     protected function getSuccessResponseStatusCode(): int

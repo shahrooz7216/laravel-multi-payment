@@ -33,7 +33,8 @@
         "php": "^7.4|^8.0",
         "laravel/framework": "^7.0|^8.0",
         "ext-json": "*",
-        "ext-soap": "*"
+        "ext-soap": "*",
+        "ext-openssl": "*"
     },
     "prefer-stable": true
 }

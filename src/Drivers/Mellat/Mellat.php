@@ -124,7 +124,7 @@ class Mellat extends Driver
         );
     }
 
-    protected function getStatusMessage($status): string
+    protected function getStatusMessage($statusCode): string
     {
         $translations = [
             '0' => 'تراکنش با موفقیت انجام شد',
@@ -176,7 +176,7 @@ class Mellat extends Driver
         ];
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
-        return array_key_exists($status, $translations) ? $translations[$status] : $unknownError;
+        return array_key_exists($statusCode, $translations) ? $translations[$statusCode] : $unknownError;
     }
 
     protected function getSuccessResponseStatusCode(): string

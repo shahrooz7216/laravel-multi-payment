@@ -141,7 +141,7 @@ class Pasargad extends Driver
         ];
     }
 
-    protected function getStatusMessage($status): string
+    protected function getStatusMessage($statusCode): string
     {
         return "خطا در تبادل اطلاعات با درگاه";
     }

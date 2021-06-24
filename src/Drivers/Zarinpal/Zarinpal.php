@@ -95,7 +95,7 @@ class Zarinpal extends Driver
         ];
     }
 
-    protected function getStatusMessage($status): string
+    protected function getStatusMessage($statusCode): string
     {
         $messages = [
             "-1" => "اطلاعات ارسال شده ناقص است.",
@@ -116,7 +116,7 @@ class Zarinpal extends Driver
         ];
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
-        return array_key_exists($status, $messages) ? $messages[$status] : $unknownError;
+        return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $unknownError;
     }
 
     protected function getSuccessResponseStatusCode(): string
