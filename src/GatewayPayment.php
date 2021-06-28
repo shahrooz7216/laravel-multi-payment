@@ -76,7 +76,11 @@ class GatewayPayment
 
     protected function setSettings()
     {
-        $this->settings = config($this->getSettingsConfigKey());
+        $settings = config($this->getSettingsConfigKey());
+        if (empty($settings) or !is_array($settings)) {
+            throw new InvalidConfigurationException('Settings for ' . $this->getSettingsConfigKey() . ' not found.');
+        }
+        $this->settings = $settings;
     }
 
     public function setGatewayName(string $gatewayName)
