@@ -9,7 +9,7 @@ Supports laravel **v7.0+** and requires php **v7.4+**
 
 <div dir="rtl">
 
-> [مستندات فارسی][readme-link-fa]
+> **[مستندات فارسی][readme-link-fa]**
 </div>
 
 ## Supported Gateways
