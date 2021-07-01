@@ -46,7 +46,7 @@ class RedirectionForm
 
     public function render()
     {
-        return view('MultiPayment::redirect-to-gateway', $this->getData());
+        return view('multipayment::gateway_redirect', $this->getData());
     }
 
     public function toJsonResponse()
