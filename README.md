@@ -9,7 +9,7 @@ Supports laravel **v7.0+** and requires php **v7.4+**
 
 <div dir="rtl">
 
-> [مستندات فارسی][readme-link-fa]
+> **[مستندات فارسی][readme-link-fa]**
 </div>
 
 ## Supported Gateways
@@ -28,15 +28,31 @@ Install using composer
   composer require omalizadeh/laravel-multi-payment
 ```
 
-Publish gateway config files
+Publish main config file
 
 ```bash
-  php artisan vendor:publish --provider="Omalizadeh\MultiPayment\Providers\MultiPaymentServiceProvider"
+  php artisan vendor:publish --tag=multipayment-config
 ```
 
-This command will publish main config file `multipayment.php` and gateway configs each in a seprated file. You can
-delete config files for gateways that you don't use. In main config file you can specify default driver. There is also
-an option for auto payment amount conversion from Iranian Tomans to Iranian Rials currency (IRR).
+Publish gateway config file based on these tags.
+- zarinpal-config
+- mellat-config
+- saman-config
+- pasargad-config
+- novin-config
+  
+For example:
+
+```bash
+  php artisan vendor:publish --tag=zarinpal-config
+```
+
+Also you can publish view file for gateway redirection and customize it
+```bash
+  php artisan vendor:publish --tag=multipayment-view
+```
+
+In main config file `multipayment.php` you can specify default driver. There is also an option for auto amount conversion from Iranian Tomans to Iranian Rials currency (IRR) and vice versa.
 
 ```php
      /**
@@ -52,8 +68,7 @@ an option for auto payment amount conversion from Iranian Tomans to Iranian Rial
     'convert_to_rials' => true
 ```
 
-In each gateway config file, you can specify multiple credentials and therefore you may have multiple zarinpal gateways
-for your app.
+In each gateway config file, you can specify multiple credentials and therefore you may have multiple gateways for your app.
 
 ```php
      /**

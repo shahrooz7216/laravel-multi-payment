@@ -6,10 +6,17 @@
     "license": "MIT",
     "keywords": [
         "payment",
+        "bank",
         "shetab",
         "gateway",
+        "behpardakht",
+        "saman",
+        "mellat",
+        "zarinpal",
+        "pasargad",
+        "eghtesad novin",
         "online payment",
-        "bank"
+        "laravel payment"
     ],
     "authors": [
         {
@@ -17,9 +24,25 @@
             "email": "om.alizadeh1@gmail.com"
         }
     ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "ext-json": "*",
+        "ext-soap": "*",
+        "ext-openssl": "*",
+        "illuminate/support": "^7.0|^8.0",
+        "ramsey/uuid": "^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.18"
+    },
     "autoload": {
         "psr-4": {
             "Omalizadeh\\MultiPayment\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omalizadeh\\MultiPayment\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -28,13 +51,6 @@
                 "Omalizadeh\\MultiPayment\\Providers\\MultiPaymentServiceProvider"
             ]
         }
-    },
-    "require": {
-        "php": "^7.4|^8.0",
-        "laravel/framework": "^7.0|^8.0",
-        "ext-json": "*",
-        "ext-soap": "*",
-        "ext-openssl": "*"
     },
     "prefer-stable": true
 }

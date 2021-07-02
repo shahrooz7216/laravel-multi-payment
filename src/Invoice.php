@@ -99,10 +99,7 @@ class Invoice
 
     public function getAmountInTomans()
     {
-        if (config('multipayment.convert_to_rials')) {
-            return $this->amount / 10;
-        }
-        return $this->amount;
+        return $this->amount / 10;
     }
 
     public function getUuid(): string

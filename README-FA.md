@@ -40,15 +40,33 @@
 ```
 
 <div dir="rtl">
-انتشار تنظیمات و فایل های پکیج با اجرای دستور artisan زیر:
+انتشار فایل تنظیمات اصلی با دستور زیر:
 </div>
 
 ```bash
-  php artisan vendor:publish --provider="Omalizadeh\MultiPayment\Providers\MultiPaymentServiceProvider"
+  php artisan vendor:publish --tag=multipayment-config
 ```
 
 <div dir="rtl">
-بعد از اجرای دستور، فایل های تنظیمات درگاه های مختلف و فایل تنظیمات اصلی پکیج با نام multipayment.php در پوشه تنظیمات پروژه قرار می گیرند. شما می توانید فایل های مربوط به درگاه هایی که استفاده نمی شوند را حذف کنید. در تنظیمات اصلی، می توانید درگاه پیش فرض را انتخاب کنید. قسمتی هم برای تنظیم واحد پولی درنظر گرفته شده که هنگام اتصال به درگاه تبدیل به ریال بطور خودکار انجام شود.
+انتشار فایل تنظیمات درگاه مورد نظر با استفاده از تگ هر درگاه
+</div>
+
+- zarinpal-config
+- mellat-config
+- saman-config
+- pasargad-config
+- novin-config
+
+<div dir="rtl">
+به عنوان مثال از دستور زیر می توان برای تنظیمات درگاه زرین پال استفاده کرد:
+</div>
+
+```bash
+  php artisan vendor:publish --tag=zarinpal-config
+```
+
+<div dir="rtl">
+در تنظیمات اصلی، می توانید درگاه پیش فرض را انتخاب کنید. قسمتی هم برای تنظیم واحد پولی درنظر گرفته شده که هنگام اتصال به درگاه تبدیل به ریال بطور خودکار انجام شود.
 </div>
 
 ```php
