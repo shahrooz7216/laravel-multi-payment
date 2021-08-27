@@ -15,6 +15,11 @@ class RedirectionForm
         $this->method = $method;
     }
 
+    public function getUrl(): string
+    {
+        return $this->action;
+    }
+
     public function getMethod(): string
     {
         return $this->method;
@@ -25,32 +30,35 @@ class RedirectionForm
         return $this->inputs;
     }
 
-    public function getUrl(): string
+    public function toJsonResponse()
     {
-        return $this->action;
+        return response()->json($this->toArray());
     }
 
-    public function getData(): array
-    {
-        return [
-            "action" => $this->getUrl(),
-            "inputs" => $this->getInputs(),
-            "method" => $this->getMethod(),
-        ];
-    }
-
-    public function toJson()
+    public function toArray(): array
     {
         return $this->getData();
     }
 
     public function render()
     {
-        return view('multipayment::gateway_redirect', $this->getData());
+        return view('multipayment::gateway_redirect', $this->toArray());
     }
 
-    public function toJsonResponse()
+    /**
+     * @deprecated
+     */
+    public function toJson()
     {
-        return response()->json($this->toJson());
+        return $this->getData();
+    }
+
+    protected function getData(): array
+    {
+        return [
+            "action" => $this->getUrl(),
+            "inputs" => $this->getInputs(),
+            "method" => $this->getMethod(),
+        ];
     }
 }
