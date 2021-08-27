@@ -53,7 +53,7 @@ Also you can publish view file for gateway redirection and customize it
   php artisan vendor:publish --tag=multipayment-view
 ```
 
-In main config file `multipayment.php` you can specify default driver. There is also an option for auto amount conversion from Iranian Tomans to Iranian Rials currency (IRR) and vice versa.
+In main config file `multipayment.php`, you can specify default driver. For example, `zarinpal.second` value states that `zarinpal` gateway with configuration under `second` key section on zarinpal config file will be used. There is also an option for auto amount conversion from Iranian Tomans to Iranian Rials currency (IRR) and vice versa.
 
 ```php
      /**
