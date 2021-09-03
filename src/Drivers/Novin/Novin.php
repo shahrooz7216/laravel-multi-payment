@@ -10,6 +10,7 @@ use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Receipt;
 
 class Novin extends Driver
 {
@@ -39,8 +40,8 @@ class Novin extends Driver
             $response = $this->callApi($this->getTokenGenerationUrl(), $tokenGenerationData);
             if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
                 $token = $response['Token'];
-                $this->invoice->setToken($token);
-                return $this->invoice->getInvoiceId();
+                $this->getInvoice()->setToken($token);
+                return $this->getInvoice()->getInvoiceId();
             }
             throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
         }
@@ -51,27 +52,26 @@ class Novin extends Driver
     {
         $payUrl = $this->getPaymentUrl();
         $data = [
-            'Token' => $this->invoice->getToken(),
+            'Token' => $this->getInvoice()->getToken(),
             'Language' => $this->getLanguage()
         ];
         $payUrl .= ('?token=' . $data['Token'] . '&language=' . $data['Language']);
 
-        return $this->redirectWithForm($payUrl, $data);
+        return $this->redirect($payUrl, $data);
     }
 
-    public function verify(): string
+    public function verify(): Receipt
     {
         if (request('State') and strtoupper(request('State')) != 'OK') {
             throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
         $verificationData = $this->getVerificationData();
         $response = $this->callApi($this->getVerificationUrl(), $verificationData);
-        if ($response['Result'] == $this->getSuccessResponseStatusCode() and $response['Amount'] == $this->invoice->getAmount()) {
-            $this->invoice->setTransactionId(request('RefNum'));
-            $this->invoice->setReferenceId(request('CustomerRefNum'));
-            $this->invoice->setInvoiceId(request('ResNum'));
-            $this->invoice->setCardNo(request('CardMaskPan'));
-            return request('TraceNo');
+        if ($response['Result'] == $this->getSuccessResponseStatusCode() and $response['Amount'] == $this->getInvoice()->getAmount()) {
+            $this->getInvoice()->setTransactionId(request('RefNum'));
+            $this->getInvoice()->setInvoiceId(request('ResNum'));
+
+            return new Receipt($this->getInvoice(), request('TraceNo'), request('CustomerRefNum'), request('CardMaskPan'));
         }
         throw new PaymentFailedException($this->getStatusMessage($response['Result']));
     }
@@ -138,7 +138,7 @@ class Novin extends Driver
 
     protected function getPurchaseData(): array
     {
-        $phoneNumber = $this->invoice->getPhoneNumber();
+        $phoneNumber = $this->getInvoice()->getPhoneNumber();
         if (!empty($phoneNumber)) {
             $phoneNumber = $this->checkPhoneNumberFormat($phoneNumber);
         }
@@ -146,12 +146,12 @@ class Novin extends Driver
         return [
             'WSContext' => $this->getAuthData(),
             'TransType' => static::BANK_BUY_TRANSACTION_TYPE,
-            'ReserveNum' => $this->invoice->getInvoiceId(),
-            'Amount' => $this->invoice->getAmount(),
+            'ReserveNum' => $this->getInvoice()->getInvoiceId(),
+            'Amount' => $this->getInvoice()->getAmount(),
             'RedirectUrl' => $this->settings['callback_url'],
             'MobileNo' => $phoneNumber,
-            'Email' => $this->invoice->getEmail(),
-            'UserId' => $this->invoice->getUserId(),
+            'Email' => $this->getInvoice()->getEmail(),
+            'UserId' => $this->getInvoice()->getUserId(),
         ];
     }
 
@@ -159,8 +159,8 @@ class Novin extends Driver
     {
         return [
             'WSContext' => $this->getAuthData(),
-            'Token' => request('token', $this->invoice->getToken()),
-            'RefNum' => request('RefNum', $this->invoice->getTransactionId())
+            'Token' => request('token', $this->getInvoice()->getToken()),
+            'RefNum' => request('RefNum', $this->getInvoice()->getTransactionId())
         ];
     }
 

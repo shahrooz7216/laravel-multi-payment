@@ -45,14 +45,6 @@ class RedirectionForm
         return view('multipayment::gateway_redirect', $this->toArray());
     }
 
-    /**
-     * @deprecated
-     */
-    public function toJson()
-    {
-        return $this->getData();
-    }
-
     protected function getData(): array
     {
         return [

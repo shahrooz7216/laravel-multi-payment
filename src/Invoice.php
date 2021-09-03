@@ -10,19 +10,20 @@ class Invoice
     protected $amount;
     protected string $uuid;
     protected ?int $userId = null;
-    protected ?string $referenceId;
     protected ?string $token = null;
     protected ?string $email = null;
     protected ?string $invoiceId = null;
-    protected ?string $transactionId;
-    protected ?string $cardNo = null;
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
+    protected ?string $transactionId = null;
 
-    public function __construct($amount)
+    public function __construct($amount, ?string $transactionId = null)
     {
         $this->setAmount($amount);
         $this->uuid = Uuid::uuid4()->toString();
+        if (!empty($transactionId)) {
+            $this->setTransactionId($transactionId);
+        }
     }
 
     public function setAmount($amount): Invoice
@@ -65,18 +66,6 @@ class Invoice
     public function setEmail(string $email): Invoice
     {
         $this->email = $email;
-        return $this;
-    }
-
-    public function setCardNo(string $cardNo): Invoice
-    {
-        $this->cardNo = $cardNo;
-        return $this;
-    }
-
-    public function setReferenceId(string $referenceId): Invoice
-    {
-        $this->referenceId = $referenceId;
         return $this;
     }
 
@@ -132,22 +121,12 @@ class Invoice
         return $this->email;
     }
 
-    public function getCardNo(): ?string
-    {
-        return $this->cardNo;
-    }
-
-    public function getReferenceId(): ?string
-    {
-        return $this->referenceId;
-    }
-
     public function getUserId(): ?int
     {
         return $this->userId;
     }
 
-    public function getInvoiceId(): ?string
+    public function getInvoiceId(): string
     {
         if (empty($this->invoiceId)) {
             $this->invoiceId = crc32($this->getUuid()) . rand(0, 99999);

@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers\Contracts;
 
 use Omalizadeh\MultiPayment\Invoice;
+use Omalizadeh\MultiPayment\Receipt;
 use Omalizadeh\MultiPayment\RedirectionForm;
 
 abstract class Driver implements DriverInterface
@@ -10,17 +11,28 @@ abstract class Driver implements DriverInterface
     protected Invoice $invoice;
     protected array $settings;
 
-    public function __construct(Invoice $invoice, array $settings)
+    public function __construct(array $settings)
+    {
+        $this->settings = $settings;
+    }
+
+    public function setInvoice(Invoice $invoice): self
     {
         $this->invoice = $invoice;
-        $this->settings = $settings;
+
+        return $this;
+    }
+
+    public function getInvoice(): Invoice
+    {
+        return $this->invoice;
     }
 
     abstract public function purchase(): string;
 
     abstract public function pay(): RedirectionForm;
 
-    abstract public function verify(): string;
+    abstract public function verify(): Receipt;
 
     abstract protected function getPurchaseData(): array;
 
@@ -36,7 +48,7 @@ abstract class Driver implements DriverInterface
 
     abstract protected function getVerificationUrl(): string;
 
-    protected function redirectWithForm($action, array $inputs = [], $method = 'POST'): RedirectionForm
+    protected function redirect($action, array $inputs = [], $method = 'POST'): RedirectionForm
     {
         return new RedirectionForm($action, $inputs, $method);
     }

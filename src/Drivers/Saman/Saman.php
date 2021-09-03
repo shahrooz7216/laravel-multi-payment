@@ -10,6 +10,7 @@ use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Receipt;
 
 class Saman extends Driver
 {
@@ -23,8 +24,8 @@ class Saman extends Driver
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
             }
             $token = $response['token'];
-            $this->invoice->setToken($token);
-            return $this->invoice->getInvoiceId();
+            $this->getInvoice()->setToken($token);
+            return $this->getInvoice()->getInvoiceId();
         }
         throw new PurchaseFailedException($response->body(), $response->status());
     }
@@ -33,14 +34,14 @@ class Saman extends Driver
     {
         $payUrl = $this->getPaymentUrl();
         $data = [
-            'Token' => $this->invoice->getToken(),
+            'Token' => $this->getInvoice()->getToken(),
             'GetMethod' => $this->getCallbackMethod()
         ];
 
-        return $this->redirectWithForm($payUrl, $data);
+        return $this->redirect($payUrl, $data);
     }
 
-    public function verify(): string
+    public function verify(): Receipt
     {
         if (!empty(request('Status')) and request('Status') != $this->getSuccessfulPaymentStatusCode()) {
             $statusCode = (int)request('Status');
@@ -53,12 +54,10 @@ class Saman extends Driver
         if ($responseCode < 0) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
-        $this->invoice->setTransactionId(request('RefNum'));
-        $this->invoice->setReferenceId(request('Rrn'));
-        $this->invoice->setInvoiceId(request('ResNum'));
-        $this->invoice->setCardNo(request('SecurePan'));
+        $this->getInvoice()->setTransactionId(request('RefNum'));
+        $this->getInvoice()->setInvoiceId(request('ResNum'));
 
-        return request('TraceNo');
+        return new Receipt($this->getInvoice(), request('TraceNo'), request('Rrn'), request('SecurePan'));
     }
 
     protected function getPurchaseData(): array
@@ -66,7 +65,7 @@ class Saman extends Driver
         if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
-        $cellNumber = $this->invoice->getPhoneNumber();
+        $cellNumber = $this->getInvoice()->getPhoneNumber();
         if (!empty($cellNumber)) {
             $cellNumber = $this->checkPhoneNumberFormat($cellNumber);
         }
@@ -74,17 +73,17 @@ class Saman extends Driver
         return [
             'Action' => 'Token',
             'TerminalId' => $this->settings['terminal_id'],
-            'Amount' => $this->invoice->getAmount(),
+            'Amount' => $this->getInvoice()->getAmount(),
             'RedirectUrl' => $this->settings['callback_url'],
             'CellNumber' => $cellNumber,
-            'ResNum' => $this->invoice->getInvoiceId(),
+            'ResNum' => $this->getInvoice()->getInvoiceId(),
         ];
     }
 
     protected function getVerificationData(): array
     {
         return [
-            'RefNum' => request('RefNum') ?? $this->invoice->getTransactionId(),
+            'RefNum' => request('RefNum') ?? $this->getInvoice()->getTransactionId(),
             'MerchantID' => $this->settings['terminal_id']
         ];
     }

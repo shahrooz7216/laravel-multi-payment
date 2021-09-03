@@ -6,75 +6,74 @@ use Closure;
 use Exception;
 use ReflectionClass;
 use Omalizadeh\MultiPayment\Drivers\Contracts\DriverInterface;
+use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 
-class GatewayPayment
+class Gateway
 {
     protected array $settings;
     protected string $gatewayName;
     protected string $gatewayConfigKey;
-    protected Invoice $invoice;
     protected DriverInterface $driver;
 
-    public function __construct(Invoice $invoice, ?string $gateway = null)
+    public function purchase(Invoice $invoice, ?Closure $callbackFunction = null): RedirectionForm
     {
-        $gatewayConfig = explode('.', $gateway ?? config('multipayment.default_gateway'));
+        $transactionId = $this->getDriver()->setInvoice($invoice)->purchase();
+
+        if ($callbackFunction) {
+            call_user_func($callbackFunction, $transactionId);
+        }
+
+        return $this->getDriver()->pay();
+    }
+
+    public function verify(Invoice $invoice): Receipt
+    {
+        return $this->getDriver()->setInvoice($invoice)->verify();
+    }
+
+    public function setGateway(string $gateway): Gateway
+    {
+        $gatewayConfig = explode('.', $gateway);
         if (count($gatewayConfig) !== 2 or empty($gatewayConfig[0]) or empty($gatewayConfig[1])) {
             throw new InvalidConfigurationException('Invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_CONFIG_KEY');
         }
-        $this->setInvoice($invoice);
+
         $this->setGatewayName($gatewayConfig[0]);
         $this->setGatewayConfigKey($gatewayConfig[1]);
         $this->setSettings();
         $this->setDriver();
-    }
 
-    public function purchase(?Closure $callbackFunction = null): GatewayPayment
-    {
-        $transactionId = $this->getDriver()->purchase();
-        if ($callbackFunction) {
-            call_user_func($callbackFunction, $transactionId);
-        }
         return $this;
     }
 
-    public function pay(): RedirectionForm
+    public function getGatewayName(): string
     {
-        return $this->getDriver()->pay();
+        if (empty($this->gatewayName)) {
+            $this->setDefaultGateway();
+        }
+
+        return $this->gatewayName;
     }
 
-    public function verify(): Receipt
+    public function getGatewayConfigKey(): string
     {
-        $traceNumber = $this->getDriver()->verify();
+        if (empty($this->gatewayConfigKey)) {
+            $this->setDefaultGateway();
+        }
 
-        return new Receipt($traceNumber, $this->getInvoice(), $this->getGatewayName(), $this->getGatewayConfigKey());
+        return $this->gatewayConfigKey;
     }
 
-    protected function getSettingsConfigKey()
-    {
-        return 'gateway_' . $this->getGatewayName() . '.' . $this->getGatewayConfigKey();
-    }
-
-    protected function getDriverNamespaceConfigKey()
-    {
-        return 'gateway_' . $this->getGatewayName() . '.driver';
-    }
-
-    protected function setInvoice(Invoice $invoice)
-    {
-        $this->invoice = $invoice;
-    }
-
-    protected function setDriver()
+    private function setDriver(): void
     {
         $this->validateDriver();
         $class = config($this->getDriverNamespaceConfigKey());
-        $this->driver = new $class($this->invoice, $this->settings);
+        $this->driver = new $class($this->settings);
     }
 
-    protected function setSettings()
+    private function setSettings(): void
     {
         $settings = config($this->getSettingsConfigKey());
         if (empty($settings) or !is_array($settings)) {
@@ -83,39 +82,40 @@ class GatewayPayment
         $this->settings = $settings;
     }
 
-    public function setGatewayName(string $gatewayName)
+    private function setGatewayName(string $gatewayName): void
     {
         $this->gatewayName = $gatewayName;
-        return $this;
     }
 
-    public function setGatewayConfigKey(string $gatewayConfigKey)
+    private function setGatewayConfigKey(string $gatewayConfigKey): void
     {
         $this->gatewayConfigKey = $gatewayConfigKey;
-        return $this;
     }
 
-    public function getGatewayName(): string
+    private function getSettingsConfigKey(): string
     {
-        return $this->gatewayName;
+        return 'gateway_' . $this->getGatewayName() . '.' . $this->getGatewayConfigKey();
     }
 
-    public function getGatewayConfigKey(): string
+    private function getDriverNamespaceConfigKey(): string
     {
-        return $this->gatewayConfigKey;
+        return 'gateway_' . $this->getGatewayName() . '.driver';
     }
 
-    protected function getDriver(): DriverInterface
+    private function getDriver(): DriverInterface
     {
+        if (empty($this->driver)) {
+            $this->setDefaultGateway();
+        }
         return $this->driver;
     }
 
-    protected function getInvoice(): Invoice
+    private function setDefaultGateway(): Gateway
     {
-        return $this->invoice;
+        return $this->setGateway(config('multipayment.default_gateway'));
     }
 
-    private function validateDriver()
+    private function validateDriver(): void
     {
         if (empty($this->getGatewayName())) {
             throw new ConfigurationNotFoundException('Gateway not selected or default gateway does not exist.');
@@ -129,6 +129,7 @@ class GatewayPayment
         if (!class_exists(config($this->getDriverNamespaceConfigKey()))) {
             throw new DriverNotFoundException('Gateway driver class not found. Check driver aliases or try updating the package');
         }
+
         $reflect = new ReflectionClass(config($this->getDriverNamespaceConfigKey()));
         if (!$reflect->implementsInterface(DriverInterface::class)) {
             throw new Exception("Driver must implement DriverInterface.");

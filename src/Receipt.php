@@ -5,26 +5,25 @@ namespace Omalizadeh\MultiPayment;
 class Receipt
 {
     protected Invoice $invoice;
-    protected string $gatewayName;
     protected string $traceNumber;
-    protected string $gatewayConfigKey;
+    protected ?string $cardNumber;
+    protected ?string $referenceId;
 
-    public function __construct($traceNumber, Invoice $invoice, string $gatewayName, string $gatewayConfigKey)
-    {
-        $this->traceNumber = $traceNumber;
+    public function __construct(
+        Invoice $invoice,
+        string $traceNumber,
+        ?string $referenceId = null,
+        ?string $cardNumber = null
+    ) {
         $this->invoice = $invoice;
-        $this->gatewayName = $gatewayName;
-        $this->gatewayConfigKey = $gatewayConfigKey;
+        $this->traceNumber = $traceNumber;
+        $this->referenceId = $referenceId;
+        $this->cardNumber = $cardNumber;
     }
 
-    public function getInvoiceId(): ?string
+    public function getInvoiceId(): string
     {
         return $this->invoice->getInvoiceId();
-    }
-
-    public function getTraceNumber(): string
-    {
-        return $this->traceNumber;
     }
 
     public function getTransactionId(): string
@@ -32,23 +31,18 @@ class Receipt
         return $this->invoice->getTransactionId();
     }
 
+    public function getTraceNumber(): string
+    {
+        return $this->traceNumber;
+    }
+
     public function getReferenceId(): ?string
     {
-        return $this->invoice->getReferenceId();
+        return $this->referenceId;
     }
 
-    public function getCardNo(): ?string
+    public function getCardNumber(): ?string
     {
-        return $this->invoice->getCardNo();
-    }
-
-    public function getGatewayName(): string
-    {
-        return $this->gatewayName;
-    }
-
-    public function getGatewayConfigKey(): string
-    {
-        return $this->gatewayConfigKey;
+        return $this->cardNumber;
     }
 }
