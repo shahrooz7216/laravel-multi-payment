@@ -5,17 +5,18 @@ namespace Omalizadeh\MultiPayment;
 use Closure;
 use Exception;
 use ReflectionClass;
-use Omalizadeh\MultiPayment\Drivers\Contracts\DriverInterface;
 use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Drivers\Contracts\PaymentInterface;
+use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 
 class Gateway
 {
     protected array $settings;
     protected string $gatewayName;
     protected string $gatewayConfigKey;
-    protected DriverInterface $driver;
+    protected PaymentInterface $driver;
 
     public function purchase(Invoice $invoice, ?Closure $callbackFunction = null): RedirectionForm
     {
@@ -31,6 +32,12 @@ class Gateway
     public function verify(Invoice $invoice): Receipt
     {
         return $this->getDriver()->setInvoice($invoice)->verify();
+    }
+
+    public function unverifiedPayments(): array
+    {
+        $this->validateUnverifiedInterfaceImplementation();
+        return $this->getDriver()->latestUnverifiedPayments();
     }
 
     public function setGateway(string $gateway): Gateway
@@ -102,7 +109,7 @@ class Gateway
         return 'gateway_' . $this->getGatewayName() . '.driver';
     }
 
-    private function getDriver(): DriverInterface
+    private function getDriver(): PaymentInterface
     {
         if (empty($this->driver)) {
             $this->setDefaultGateway();
@@ -131,8 +138,16 @@ class Gateway
         }
 
         $reflect = new ReflectionClass(config($this->getDriverNamespaceConfigKey()));
-        if (!$reflect->implementsInterface(DriverInterface::class)) {
-            throw new Exception("Driver must implement DriverInterface.");
+        if (!$reflect->implementsInterface(PaymentInterface::class)) {
+            throw new Exception("Driver must implement PaymentInterface.");
+        }
+    }
+
+    private function validateUnverifiedInterfaceImplementation()
+    {
+        $reflect = new ReflectionClass($this->getDriver());
+        if (!$reflect->implementsInterface(UnverifiedPaymentsInterface::class)) {
+            throw new Exception("Driver does not support unverified payments.");
         }
     }
 }

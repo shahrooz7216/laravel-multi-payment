@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Facade;
 use Omalizadeh\MultiPayment\Gateway;
 
 /**
+ * @method static array unverifiedPayments()
  * @method static \Omalizadeh\MultiPayment\RedirectionForm purchase(\Omalizadeh\MultiPayment\Invoice $invoice, ?\Closure $closure = null)
  * @method static \Omalizadeh\MultiPayment\Receipt verify(\Omalizadeh\MultiPayment\Invoice $invoice)
  * @method static \Omalizadeh\MultiPayment\Gateway setGateway(string $gateway)

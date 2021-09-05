@@ -5,14 +5,16 @@ namespace Omalizadeh\MultiPayment\Drivers\Zarinpal;
 use Illuminate\Support\Facades\Http;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
+use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Exceptions\InvalidGatewayResponseDataException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Receipt;
 
-class Zarinpal extends Driver
+class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 {
     public function purchase(): string
     {
@@ -65,6 +67,17 @@ class Zarinpal extends Driver
         return new Receipt($this->getInvoice(), $refId, $refId);
     }
 
+    public function latestUnverifiedPayments(): array
+    {
+        $response = $this->callApi($this->getUnverifiedPaymentsUrl(), $this->getUnverifiedPaymentsData());
+        if ($response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
+            $message = $this->getStatusMessage($response['data']['code']);
+            throw new InvalidGatewayResponseDataException($message, $response['data']['code']);
+        }
+
+        return $response['data']['authorities'];
+    }
+
     protected function getPurchaseData(): array
     {
         if (empty($this->settings['merchant_id'])) {
@@ -98,6 +111,17 @@ class Zarinpal extends Driver
             'merchant_id' => $this->settings['merchant_id'],
             'authority' => $authority,
             'amount' => $this->getInvoice()->getAmount(),
+        ];
+    }
+
+    protected function getUnverifiedPaymentsData(): array
+    {
+        if (empty($this->settings['merchant_id'])) {
+            throw new InvalidConfigurationException('Merchant id has not been set.');
+        }
+
+        return [
+            'merchant_id' => $this->settings['merchant_id'],
         ];
     }
 
@@ -181,6 +205,11 @@ class Zarinpal extends Driver
         }
 
         return $url;
+    }
+
+    protected function getUnverifiedPaymentsUrl(): string
+    {
+        return 'https://api.zarinpal.com/pg/v4/payment/unVerified.json';
     }
 
     private function getMode(): string
