@@ -6,7 +6,7 @@ use Omalizadeh\MultiPayment\Invoice;
 use Omalizadeh\MultiPayment\Receipt;
 use Omalizadeh\MultiPayment\RedirectionForm;
 
-interface DriverInterface
+interface PaymentInterface
 {
     public function purchase(): string;
 
@@ -14,5 +14,5 @@ interface DriverInterface
 
     public function verify(): Receipt;
 
-    public function setInvoice(Invoice $invoice): DriverInterface;
+    public function setInvoice(Invoice $invoice): PaymentInterface;
 }
