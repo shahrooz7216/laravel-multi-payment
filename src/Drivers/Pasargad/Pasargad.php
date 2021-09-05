@@ -34,6 +34,7 @@ class Pasargad extends Driver
     public function pay(): RedirectionForm
     {
         $payUrl = $this->getPaymentUrl();
+
         $data = [
             'Token' => $this->getInvoice()->getToken()
         ];
@@ -70,7 +71,6 @@ class Pasargad extends Driver
                     $verificationResult['MaskedCardNumber']
                 );
             }
-            throw new PaymentFailedException($response->body(), $response->status());
         }
         throw new PaymentFailedException($response->body(), $response->status());
     }

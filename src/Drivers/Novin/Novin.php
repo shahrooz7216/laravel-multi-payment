@@ -43,7 +43,6 @@ class Novin extends Driver
                 $this->getInvoice()->setToken($token);
                 return $this->getInvoice()->getInvoiceId();
             }
-            throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
         }
         throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
     }
@@ -51,6 +50,7 @@ class Novin extends Driver
     public function pay(): RedirectionForm
     {
         $payUrl = $this->getPaymentUrl();
+
         $data = [
             'Token' => $this->getInvoice()->getToken(),
             'Language' => $this->getLanguage()
@@ -62,9 +62,10 @@ class Novin extends Driver
 
     public function verify(): Receipt
     {
-        if (request('State') and strtoupper(request('State')) != 'OK') {
+        if (!empty(request('State')) and strtoupper(request('State')) !== 'OK') {
             throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
+
         $verificationData = $this->getVerificationData();
         $response = $this->callApi($this->getVerificationUrl(), $verificationData);
         if ($response['Result'] == $this->getSuccessResponseStatusCode() and $response['Amount'] == $this->getInvoice()->getAmount()) {
@@ -81,9 +82,11 @@ class Novin extends Driver
         $unsignedFile = fopen($this->getUnsignedDataFilePath(), "w");
         fwrite($unsignedFile, $dataToSign);
         fclose($unsignedFile);
+
         $signedFile = fopen($this->getSignedDataFilePath(), "w");
         fwrite($signedFile, "");
         fclose($signedFile);
+
         openssl_pkcs7_sign(
             $this->getUnsignedDataFilePath(),
             $this->getSignedDataFilePath(),
@@ -92,9 +95,11 @@ class Novin extends Driver
             array(),
             PKCS7_NOSIGS
         );
+
         $sigendData = file_get_contents($this->getSignedDataFilePath());
         $sigendDataParts = explode("\n\n", $sigendData, 2);
         $signedDataFirstPart = $sigendDataParts[1];
+
         return explode("\n\n", $signedDataFirstPart, 2)[0];
     }
 
@@ -130,6 +135,7 @@ class Novin extends Driver
                 'SessionId' => $this->sessionId,
             ];
         }
+
         return [
             'UserId' => $this->settings['username'],
             'Password' => $this->settings['password']
@@ -258,9 +264,6 @@ class Novin extends Driver
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '09')) {
-            return $phoneNumber;
-        }
         if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
