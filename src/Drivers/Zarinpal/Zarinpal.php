@@ -19,7 +19,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     public function purchase(): string
     {
         $response = $this->callApi($this->getPurchaseUrl(), $this->getPurchaseData());
-        if ($response['data']['code'] !== $this->getSuccessResponseStatusCode() or empty($response['data']['authority'])) {
+        if ($response['data']['code'] != $this->getSuccessResponseStatusCode() or empty($response['data']['authority'])) {
             $message = $this->getStatusMessage($response['data']['code']);
             throw new PurchaseFailedException($message, $response['data']['code']);
         }
@@ -32,13 +32,14 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     {
         $transactionId = $this->getInvoice()->getTransactionId();
         $paymentUrl = $this->getPaymentUrl();
-        if (strtolower($this->getMode()) == 'zaringate') {
-            $payUrl = str_replace(':authority', $transactionId, $paymentUrl);
+
+        if ($this->getMode() === 'zaringate') {
+            $paymentUrl = str_replace(':authority', $transactionId, $paymentUrl);
         } else {
-            $payUrl = $paymentUrl . $transactionId;
+            $paymentUrl = $paymentUrl . $transactionId;
         }
 
-        return $this->redirect($payUrl, [], 'GET');
+        return $this->redirect($paymentUrl, [], 'GET');
     }
 
     public function verify(): Receipt
@@ -52,7 +53,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         $response = $this->callApi($this->getVerificationUrl(), $this->getVerificationData());
         $responseCode = $response['data']['code'];
 
-        if ($responseCode !== $this->getSuccessResponseStatusCode()) {
+        if ($responseCode != $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($responseCode);
             if ($responseCode == $this->getPaymentAlreadyVerifiedStatusCode()) {
                 throw new PaymentAlreadyVerifiedException($message, $responseCode);
@@ -70,7 +71,8 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     public function latestUnverifiedPayments(): array
     {
         $response = $this->callApi($this->getUnverifiedPaymentsUrl(), $this->getUnverifiedPaymentsData());
-        if ($response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
+
+        if ($response['data']['code'] != $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
             throw new InvalidGatewayResponseDataException($message, $response['data']['code']);
         }
@@ -83,11 +85,13 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         if (empty($this->settings['merchant_id'])) {
             throw new InvalidConfigurationException('Merchant id has not been set.');
         }
+
         if (!empty($this->getInvoice()->getDescription())) {
             $description = $this->getInvoice()->getDescription();
         } else {
             $description = $this->settings['description'];
         }
+
         $mobile = $this->getInvoice()->getPhoneNumber();
         $email = $this->getInvoice()->getEmail();
 
@@ -144,6 +148,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
             -54 => "درخواست مورد نظر آرشيو شده است",
             101 => "عمليات پرداخت موفق بوده و قبلا PaymentVerification تراكنش انجام شده است.",
         ];
+
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
         return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $unknownError;
@@ -162,6 +167,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     protected function getPurchaseUrl(): string
     {
         $mode = $this->getMode();
+
         switch ($mode) {
             case 'sandbox':
                 $url = 'https://sandbox.zarinpal.com/pg/v4/payment/request.json';
@@ -177,12 +183,13 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     protected function getPaymentUrl(): string
     {
         $mode = $this->getMode();
+
         switch ($mode) {
-            case 'zaringate':
-                $url = 'https://zarinpal.com/pg/StartPay/:authority/ZarinGate';
-                break;
             case 'sandbox':
                 $url = 'https://sandbox.zarinpal.com/pg/StartPay/';
+                break;
+            case 'zaringate':
+                $url = 'https://zarinpal.com/pg/StartPay/:authority/ZarinGate';
                 break;
             default:
                 $url = 'https://zarinpal.com/pg/StartPay/';
