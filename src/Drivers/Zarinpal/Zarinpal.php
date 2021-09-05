@@ -3,6 +3,7 @@
 namespace Omalizadeh\MultiPayment\Drivers\Zarinpal;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
@@ -94,6 +95,10 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         $mobile = $this->getInvoice()->getPhoneNumber();
         $email = $this->getInvoice()->getEmail();
+
+        if (!empty($mobile)) {
+            $mobile = $this->checkPhoneNumberFormat($mobile);
+        }
 
         return [
             'merchant_id' => $this->settings['merchant_id'],
@@ -243,5 +248,17 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         }
 
         throw new HttpRequestFailedException($response->body(), $response->status());
+    }
+
+    private function checkPhoneNumberFormat(string $phoneNumber): string
+    {
+        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+            return Str::replaceFirst('98', '0', $phoneNumber);
+        }
+        if (strlen($phoneNumber) == 10 and Str::startsWith($phoneNumber, '9')) {
+            return '0' . $phoneNumber;
+        }
+
+        return $phoneNumber;
     }
 }
