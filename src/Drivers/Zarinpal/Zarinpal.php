@@ -20,7 +20,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     public function purchase(): string
     {
         $response = $this->callApi($this->getPurchaseUrl(), $this->getPurchaseData());
-        if ($response['data']['code'] != $this->getSuccessResponseStatusCode() or empty($response['data']['authority'])) {
+        if (empty($response['data']['authority']) || (int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
             throw new PurchaseFailedException($message, $response['data']['code']);
         }
@@ -37,7 +37,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         if ($this->getMode() === 'zaringate') {
             $paymentUrl = str_replace(':authority', $transactionId, $paymentUrl);
         } else {
-            $paymentUrl = $paymentUrl . $transactionId;
+            $paymentUrl .= $transactionId;
         }
 
         return $this->redirect($paymentUrl, [], 'GET');
@@ -52,19 +52,17 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         }
 
         $response = $this->callApi($this->getVerificationUrl(), $this->getVerificationData());
-        $responseCode = $response['data']['code'];
+        $responseCode = (int) $response['data']['code'];
 
-        if ($responseCode != $this->getSuccessResponseStatusCode()) {
+        if ($responseCode !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($responseCode);
-            if ($responseCode == $this->getPaymentAlreadyVerifiedStatusCode()) {
+            if ($responseCode === $this->getPaymentAlreadyVerifiedStatusCode()) {
                 throw new PaymentAlreadyVerifiedException($message, $responseCode);
             }
             throw new PaymentFailedException($message, $responseCode);
         }
 
         $refId = $response['data']['ref_id'];
-
-        $this->getInvoice()->setReferenceId($refId);
 
         return new Receipt($this->getInvoice(), $refId, $refId);
     }
@@ -73,7 +71,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     {
         $response = $this->callApi($this->getUnverifiedPaymentsUrl(), $this->getUnverifiedPaymentsData());
 
-        if ($response['data']['code'] != $this->getSuccessResponseStatusCode()) {
+        if ((int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
             throw new InvalidGatewayResponseDataException($message, $response['data']['code']);
         }
@@ -173,16 +171,11 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     {
         $mode = $this->getMode();
 
-        switch ($mode) {
-            case 'sandbox':
-                $url = 'https://sandbox.zarinpal.com/pg/v4/payment/request.json';
-                break;
-            default:
-                $url = 'https://api.zarinpal.com/pg/v4/payment/request.json';
-                break;
+        if ($mode === 'sandbox') {
+            return 'https://sandbox.zarinpal.com/pg/v4/payment/request.json';
         }
 
-        return $url;
+        return 'https://api.zarinpal.com/pg/v4/payment/request.json';
     }
 
     protected function getPaymentUrl(): string
@@ -207,16 +200,12 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     protected function getVerificationUrl(): string
     {
         $mode = $this->getMode();
-        switch ($mode) {
-            case 'sandbox':
-                $url = 'https://sandbox.zarinpal.com/pg/v4/payment/verify.json';
-                break;
-            default:
-                $url = 'https://api.zarinpal.com/pg/v4/payment/verify.json';
-                break;
+
+        if ($mode === 'sandbox') {
+            return 'https://sandbox.zarinpal.com/pg/v4/payment/verify.json';
         }
 
-        return $url;
+        return 'https://api.zarinpal.com/pg/v4/payment/verify.json';
     }
 
     protected function getUnverifiedPaymentsUrl(): string
@@ -252,11 +241,11 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+        if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
-        if (strlen($phoneNumber) == 10 and Str::startsWith($phoneNumber, '9')) {
-            return '0' . $phoneNumber;
+        if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
+            return '0'.$phoneNumber;
         }
 
         return $phoneNumber;

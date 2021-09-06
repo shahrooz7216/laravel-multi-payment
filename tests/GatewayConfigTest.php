@@ -8,36 +8,36 @@ use Omalizadeh\MultiPayment\Facades\PaymentGateway;
 class GatewayConfigTest extends TestCase
 {
     /** @test */
-    public function defaultGatewayIsIdentifiedTest()
+    public function defaultGatewayIsIdentifiedTest(): void
     {
-        $this->assertEquals(PaymentGateway::getGatewayName(), 'zarinpal');
-        $this->assertEquals(PaymentGateway::getGatewayConfigKey(), 'main');
+        $this->assertEquals('zarinpal', PaymentGateway::getGatewayName());
+        $this->assertEquals('main', PaymentGateway::getGatewayConfigKey());
     }
 
     /** @test */
-    public function gatewayCanBeSetTest()
+    public function gatewayCanBeSetTest(): void
     {
         PaymentGateway::setGateway('zarinpal.other');
-        $this->assertEquals(PaymentGateway::getGatewayName(), 'zarinpal');
-        $this->assertEquals(PaymentGateway::getGatewayConfigKey(), 'other');
+        $this->assertEquals('zarinpal', PaymentGateway::getGatewayName());
+        $this->assertEquals('other', PaymentGateway::getGatewayConfigKey());
     }
 
     /** @test */
-    public function gatewayPatternWithoutDotsErrorTest()
+    public function gatewayPatternWithoutDotsErrorTest(): void
     {
         $this->expectException(InvalidConfigurationException::class);
         PaymentGateway::setGateway('zarinpal_other');
     }
 
     /** @test */
-    public function gatewayPatternWithManyDotsErrorTest()
+    public function gatewayPatternWithManyDotsErrorTest(): void
     {
         $this->expectException(InvalidConfigurationException::class);
         PaymentGateway::setGateway('zarinpal.other.default');
     }
 
     /** @test */
-    public function emptyOrInvalidGatewaySettingsErrorTest()
+    public function emptyOrInvalidGatewaySettingsErrorTest(): void
     {
         $this->expectException(InvalidConfigurationException::class);
         PaymentGateway::setGateway('zarinpal.second');

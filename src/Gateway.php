@@ -18,28 +18,47 @@ class Gateway
     protected string $gatewayConfigKey;
     protected PaymentInterface $driver;
 
-    public function purchase(Invoice $invoice, ?Closure $callbackFunction = null): RedirectionForm
+    /**
+     * @param  Invoice  $invoice
+     * @param  Closure|null  $callback
+     * @return RedirectionForm
+     */
+    public function purchase(Invoice $invoice, ?Closure $callback = null): RedirectionForm
     {
         $transactionId = $this->getDriver()->setInvoice($invoice)->purchase();
 
-        if ($callbackFunction) {
-            call_user_func($callbackFunction, $transactionId);
+        if ($callback) {
+            $callback($transactionId);
         }
 
         return $this->getDriver()->pay();
     }
 
+    /**
+     * @param  Invoice  $invoice
+     * @return Receipt
+     */
     public function verify(Invoice $invoice): Receipt
     {
         return $this->getDriver()->setInvoice($invoice)->verify();
     }
 
+    /**
+     * @return array
+     * @throws Exception
+     */
     public function unverifiedPayments(): array
     {
         $this->validateUnverifiedInterfaceImplementation();
+
         return $this->getDriver()->latestUnverifiedPayments();
     }
 
+    /**
+     * @param  string  $gateway
+     * @return $this
+     * @throws InvalidConfigurationException
+     */
     public function setGateway(string $gateway): Gateway
     {
         $gatewayConfig = explode('.', $gateway);
@@ -55,6 +74,9 @@ class Gateway
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getGatewayName(): string
     {
         if (empty($this->gatewayName)) {
@@ -64,6 +86,9 @@ class Gateway
         return $this->gatewayName;
     }
 
+    /**
+     * @return string
+     */
     public function getGatewayConfigKey(): string
     {
         if (empty($this->gatewayConfigKey)) {
@@ -76,6 +101,7 @@ class Gateway
     private function setDriver(): void
     {
         $this->validateDriver();
+
         $class = config($this->getDriverNamespaceConfigKey());
         $this->driver = new $class($this->settings);
     }
@@ -83,8 +109,8 @@ class Gateway
     private function setSettings(): void
     {
         $settings = config($this->getSettingsConfigKey());
-        if (empty($settings) or !is_array($settings)) {
-            throw new InvalidConfigurationException('Settings for ' . $this->getSettingsConfigKey() . ' not found.');
+        if (empty($settings) || !is_array($settings)) {
+            throw new InvalidConfigurationException('Settings for '.$this->getSettingsConfigKey().' not found.');
         }
         $this->settings = $settings;
     }
@@ -101,12 +127,12 @@ class Gateway
 
     private function getSettingsConfigKey(): string
     {
-        return 'gateway_' . $this->getGatewayName() . '.' . $this->getGatewayConfigKey();
+        return 'gateway_'.$this->getGatewayName().'.'.$this->getGatewayConfigKey();
     }
 
     private function getDriverNamespaceConfigKey(): string
     {
-        return 'gateway_' . $this->getGatewayName() . '.driver';
+        return 'gateway_'.$this->getGatewayName().'.driver';
     }
 
     private function getDriver(): PaymentInterface
@@ -117,9 +143,9 @@ class Gateway
         return $this->driver;
     }
 
-    private function setDefaultGateway(): Gateway
+    private function setDefaultGateway(): void
     {
-        return $this->setGateway(config('multipayment.default_gateway'));
+        $this->setGateway(config('multipayment.default_gateway'));
     }
 
     private function validateDriver(): void
@@ -143,7 +169,7 @@ class Gateway
         }
     }
 
-    private function validateUnverifiedInterfaceImplementation()
+    private function validateUnverifiedInterfaceImplementation(): void
     {
         $reflect = new ReflectionClass($this->getDriver());
         if (!$reflect->implementsInterface(UnverifiedPaymentsInterface::class)) {

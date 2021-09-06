@@ -67,7 +67,7 @@ class Mellat extends Driver
         $settlingResponse = $soap->bpSettleRequest($data);
         $responseCode = $settlingResponse->return;
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
-            if ($responseCode != $this->getPaymentAlreadySettledStatusCode() or $responseCode != $this->getPaymentAlreadyReversedStatusCode()) {
+            if ($responseCode != $this->getPaymentAlreadySettledStatusCode() || $responseCode != $this->getPaymentAlreadyReversedStatusCode()) {
                 $soap->bpReversalRequest($data);
             }
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
@@ -83,7 +83,7 @@ class Mellat extends Driver
         if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
-        if (empty($this->settings['username']) or empty($this->settings['password'])) {
+        if (empty($this->settings['username']) || empty($this->settings['password'])) {
             throw new InvalidConfigurationException('Username or password has not been set.');
         }
         if (!empty($this->getInvoice()->getDescription())) {
@@ -221,13 +221,13 @@ class Mellat extends Driver
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+        if (strlen($phoneNumber) === 12 and Str::startsWith($phoneNumber, '98')) {
             return $phoneNumber;
         }
-        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '0')) {
+        if (strlen($phoneNumber) === 11 and Str::startsWith($phoneNumber, '0')) {
             return Str::replaceFirst('0', '98', $phoneNumber);
         }
-        if (strlen($phoneNumber) == 10) {
+        if (strlen($phoneNumber) === 10) {
             return '98' . $phoneNumber;
         }
         return $phoneNumber;

@@ -4,9 +4,9 @@ namespace Omalizadeh\MultiPayment;
 
 class RedirectionForm
 {
-    protected $method;
-    protected $inputs;
-    protected $action;
+    protected string $method;
+    protected array $inputs;
+    protected string $action;
 
     public function __construct(string $action, array $inputs = [], string $method = 'POST')
     {
@@ -30,7 +30,7 @@ class RedirectionForm
         return $this->inputs;
     }
 
-    public function toJsonResponse()
+    public function toJsonResponse(): \Illuminate\Http\JsonResponse
     {
         return response()->json($this->toArray());
     }

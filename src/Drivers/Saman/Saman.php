@@ -20,7 +20,7 @@ class Saman extends Driver
         $headers = $this->getRequestHeaders();
         $response = Http::withHeaders($headers)->post($this->getPurchaseUrl(), $data);
         if ($response->successful()) {
-            if ($response['status'] != $this->getSuccessResponseStatusCode()) {
+            if ((int) $response['status'] !== $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
             }
             $token = $response['token'];
@@ -43,14 +43,15 @@ class Saman extends Driver
 
     public function verify(): Receipt
     {
-        if (!empty(request('Status')) and request('Status') != $this->getSuccessfulPaymentStatusCode()) {
-            $statusCode = (int)request('Status');
+        $statusCode = (int) request('Status');
+        if ($statusCode !== $this->getSuccessfulPaymentStatusCode()) {
             throw new PaymentFailedException($this->getStatusMessage($statusCode), $statusCode);
         }
+
         $data = $this->getVerificationData();
         $soapOptions = $this->getSoapOptions();
         $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
-        $responseCode = (int)$soap->verifyTransaction($data['RefNum'], $data['MerchantID']);
+        $responseCode = (int) $soap->verifyTransaction($data['RefNum'], $data['MerchantID']);
         if ($responseCode < 0) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
@@ -149,7 +150,7 @@ class Saman extends Driver
 
     private function getCallbackMethod()
     {
-        if (isset($this->settings['callback_method']) and strtoupper($this->settings['callback_method']) == 'GET') {
+        if (isset($this->settings['callback_method']) && strtoupper($this->settings['callback_method']) === 'GET') {
             return "true";
         }
         return null;
@@ -172,14 +173,14 @@ class Saman extends Driver
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+        if (strlen($phoneNumber) === 12 and Str::startsWith($phoneNumber, '98')) {
             return $phoneNumber;
         }
-        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '0')) {
+        if (strlen($phoneNumber) === 11 and Str::startsWith($phoneNumber, '0')) {
             return Str::replaceFirst('0', '98', $phoneNumber);
         }
-        if (strlen($phoneNumber) == 10) {
-            return '98' . $phoneNumber;
+        if (strlen($phoneNumber) === 10) {
+            return '98'.$phoneNumber;
         }
         return $phoneNumber;
     }
