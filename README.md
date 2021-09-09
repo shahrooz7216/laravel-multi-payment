@@ -135,6 +135,10 @@
 </div>
 
 ```php
+    use Omalizadeh\MultiPayment\Facades\PaymentGateway;
+    
+    ////
+    
     $invoice = new Invoice(10000);
     $invoice->setPhoneNumber("989123456789");
     
@@ -171,7 +175,7 @@
     try {
         // Get amount & transaction_id from database or gateway request
         $invoice = new Invoice($amount, $transactionId);
-        $receipt = GatewayPayment::verify($invoice);
+        $receipt = PaymentGateway::verify($invoice);
         // Save receipt data and return response
         //
     } catch (PaymentAlreadyVerifiedException $exception) {
