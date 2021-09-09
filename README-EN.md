@@ -8,6 +8,8 @@
 This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations.
 Supports laravel **v7.0+** and requires php **v7.4+**
 
+> Star! if you liked the package.
+
 <div dir="rtl">
 
 > **[مستندات فارسی][readme-link-fa]**
