@@ -6,7 +6,7 @@ use Omalizadeh\MultiPayment\Invoice;
 use Omalizadeh\MultiPayment\Receipt;
 use Omalizadeh\MultiPayment\RedirectionForm;
 
-abstract class Driver implements PaymentInterface
+abstract class Driver implements PurchaseInterface
 {
     protected Invoice $invoice;
     protected array $settings;
