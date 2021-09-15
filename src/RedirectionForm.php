@@ -32,7 +32,9 @@ class RedirectionForm
 
     public function toJsonResponse(): \Illuminate\Http\JsonResponse
     {
-        return response()->json($this->toArray());
+        return response()->json([
+            'data' => $this->toArray()
+        ]);
     }
 
     public function toArray(): array
@@ -48,9 +50,9 @@ class RedirectionForm
     protected function getData(): array
     {
         return [
-            "action" => $this->getUrl(),
-            "inputs" => $this->getInputs(),
-            "method" => $this->getMethod(),
+            'action' => $this->getUrl(),
+            'inputs' => $this->getInputs(),
+            'method' => $this->getMethod(),
         ];
     }
 }
