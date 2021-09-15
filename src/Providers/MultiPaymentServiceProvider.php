@@ -16,42 +16,47 @@ class MultiPaymentServiceProvider extends ServiceProvider
         });
 
         $this->mergeConfigFrom(
-            __DIR__ . '/../../config/multipayment.php',
+            __DIR__.'/../../config/multipayment.php',
             'multipayment.php'
         );
     }
 
     public function boot()
     {
-        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'multipayment');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'multipayment');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../../resources/views' => resource_path('views/vendor/multipayment')
+                __DIR__.'/../../resources/views' => resource_path('views/vendor/multipayment'),
+                __DIR__.'/../../config' => config_path(),
+            ]);
+
+            $this->publishes([
+                __DIR__.'/../../resources/views' => resource_path('views/vendor/multipayment')
             ], 'multipayment-view');
 
             $this->publishes([
-                __DIR__ . '/../../config/multipayment.php' => config_path('multipayment.php')
+                __DIR__.'/../../config/multipayment.php' => config_path('multipayment.php')
             ], 'multipayment-config');
 
             $this->publishes([
-                __DIR__ . '/../../config/gateway_zarinpal.php' => config_path('gateway_zarinpal.php'),
+                __DIR__.'/../../config/gateway_zarinpal.php' => config_path('gateway_zarinpal.php'),
             ], 'zarinpal-config');
 
             $this->publishes([
-                __DIR__ . '/../../config/gateway_mellat.php' => config_path('gateway_mellat.php')
+                __DIR__.'/../../config/gateway_mellat.php' => config_path('gateway_mellat.php')
             ], 'mellat-config');
 
             $this->publishes([
-                __DIR__ . '/../../config/gateway_saman.php' => config_path('gateway_saman.php')
+                __DIR__.'/../../config/gateway_saman.php' => config_path('gateway_saman.php')
             ], 'saman-config');
 
             $this->publishes([
-                __DIR__ . '/../../config/gateway_novin.php' => config_path('gateway_novin.php')
+                __DIR__.'/../../config/gateway_novin.php' => config_path('gateway_novin.php')
             ], 'novin-config');
 
             $this->publishes([
-                __DIR__ . '/../../config/gateway_pasargad.php' => config_path('gateway_pasargad.php')
+                __DIR__.'/../../config/gateway_pasargad.php' => config_path('gateway_pasargad.php')
             ], 'pasargad-config');
         }
     }
