@@ -3,50 +3,43 @@
 namespace Omalizadeh\MultiPayment\Tests;
 
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\GatewayPayment;
-use Omalizadeh\MultiPayment\Invoice;
+use Omalizadeh\MultiPayment\Facades\PaymentGateway;
 
 class GatewayConfigTest extends TestCase
 {
     /** @test */
-    public function defaultGatewayIsIdentifiedTest()
+    public function defaultGatewayIsIdentifiedTest(): void
     {
-        $invoice = new Invoice(12000);
-        $gatewayPayment = new GatewayPayment($invoice);
-        $this->assertEquals($gatewayPayment->getGatewayName(), 'zarinpal');
-        $this->assertEquals($gatewayPayment->getGatewayConfigKey(), 'default');
+        $this->assertEquals('zarinpal', PaymentGateway::getGatewayName());
+        $this->assertEquals('main', PaymentGateway::getGatewayConfigKey());
     }
 
     /** @test */
-    public function gatewayCanBeSetTest()
+    public function gatewayCanBeSetTest(): void
     {
-        $invoice = new Invoice(12000);
-        $gatewayPayment = new GatewayPayment($invoice, 'zarinpal.other');
-        $this->assertEquals($gatewayPayment->getGatewayName(), 'zarinpal');
-        $this->assertEquals($gatewayPayment->getGatewayConfigKey(), 'other');
+        PaymentGateway::setGateway('zarinpal.other');
+        $this->assertEquals('zarinpal', PaymentGateway::getGatewayName());
+        $this->assertEquals('other', PaymentGateway::getGatewayConfigKey());
     }
 
     /** @test */
-    public function gatewayPatternWithoutDotsErrorTest()
+    public function gatewayPatternWithoutDotsErrorTest(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $invoice = new Invoice(12000);
-        $gatewayPayment = new GatewayPayment($invoice, 'zarinpal_other');
+        PaymentGateway::setGateway('zarinpal_other');
     }
 
     /** @test */
-    public function gatewayPatternWithManyDotsErrorTest()
+    public function gatewayPatternWithManyDotsErrorTest(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $invoice = new Invoice(12000);
-        $gatewayPayment = new GatewayPayment($invoice, 'zarinpal.other.default');
+        PaymentGateway::setGateway('zarinpal.other.default');
     }
 
     /** @test */
-    public function emptyOrInvalidGatewaySettingsErrorTest()
+    public function emptyOrInvalidGatewaySettingsErrorTest(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $invoice = new Invoice(12000);
-        $gatewayPayment = new GatewayPayment($invoice, 'zarinpal.second');
+        PaymentGateway::setGateway('zarinpal.second');
     }
 }

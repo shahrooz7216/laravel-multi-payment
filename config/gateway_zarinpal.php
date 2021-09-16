@@ -8,16 +8,17 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal\Zarinpal::class,
 
     /**
-     *  soap client options
+     *  rest api call headers
      */
-    'soap_options' => [
-        'encoding' => 'UTF-8'
+    'request_headers' => [
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
     ],
 
     /**
      *  gateway configurations
      */
-    'default' => [
+    'main' => [
         'merchant_id'  => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'mode'        => 'normal', // Supported values: normal, sandbox, zaringate

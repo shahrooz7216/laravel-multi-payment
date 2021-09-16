@@ -10,6 +10,7 @@ use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
+use Omalizadeh\MultiPayment\Receipt;
 
 class Mellat extends Driver
 {
@@ -25,7 +26,7 @@ class Mellat extends Driver
             throw new PurchaseFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
         $hashCode = $responseData[1];
-        $this->invoice->setTransactionId($hashCode);
+        $this->getInvoice()->setTransactionId($hashCode);
 
         return $hashCode;
     }
@@ -33,19 +34,19 @@ class Mellat extends Driver
     public function pay(): RedirectionForm
     {
         $paymentUrl = $this->getPaymentUrl();
-        $mobileNo = $this->invoice->getPhoneNumber();
+        $mobileNo = $this->getInvoice()->getPhoneNumber();
         if (!empty($mobileNo)) {
             $mobileNo = $this->checkPhoneNumberFormat($mobileNo);
         }
         $data = [
-            'RefId' => $this->invoice->getTransactionId(),
+            'RefId' => $this->getInvoice()->getTransactionId(),
             'mobileNo' => $mobileNo
         ];
 
-        return $this->redirectWithForm($paymentUrl, $data);
+        return $this->redirect($paymentUrl, $data);
     }
 
-    public function verify(): string
+    public function verify(): Receipt
     {
         $responseCode = request('ResCode');
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
@@ -60,24 +61,21 @@ class Mellat extends Driver
             if ($responseCode != $this->getPaymentAlreadyVerifiedStatusCode()) {
                 $soap->bpReversalRequest($data);
                 throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
-            } else {
-                throw new PaymentAlreadyVerifiedException($this->getStatusMessage($responseCode), $responseCode);
             }
+            throw new PaymentAlreadyVerifiedException($this->getStatusMessage($responseCode), $responseCode);
         }
         $settlingResponse = $soap->bpSettleRequest($data);
         $responseCode = $settlingResponse->return;
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
-            if ($responseCode != $this->getPaymentAlreadySettledStatusCode() or $responseCode != $this->getPaymentAlreadyReversedStatusCode()) {
+            if ($responseCode != $this->getPaymentAlreadySettledStatusCode() || $responseCode != $this->getPaymentAlreadyReversedStatusCode()) {
                 $soap->bpReversalRequest($data);
             }
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
-        $this->invoice->setReferenceId(request('RefId'));
-        $this->invoice->setTransactionId(request('RefId'));
-        $this->invoice->setInvoiceId(request('SaleOrderId'));
-        $this->invoice->setCardNo(request('CardHolderPan'));
+        $this->getInvoice()->setTransactionId(request('RefId'));
+        $this->getInvoice()->setInvoiceId(request('SaleOrderId'));
 
-        return $data['saleReferenceId'];
+        return new Receipt($this->getInvoice(), $data['saleReferenceId'], request('RefId'), request('CardHolderPan'));
     }
 
     protected function getPurchaseData(): array
@@ -85,11 +83,11 @@ class Mellat extends Driver
         if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
-        if (empty($this->settings['username']) or empty($this->settings['password'])) {
+        if (empty($this->settings['username']) || empty($this->settings['password'])) {
             throw new InvalidConfigurationException('Username or password has not been set.');
         }
-        if (!empty($this->invoice->getDescription())) {
-            $description = $this->invoice->getDescription();
+        if (!empty($this->getInvoice()->getDescription())) {
+            $description = $this->getInvoice()->getDescription();
         } else {
             $description = $this->settings['description'];
         }
@@ -99,20 +97,20 @@ class Mellat extends Driver
             'userName' => $this->settings['username'],
             'userPassword' => $this->settings['password'],
             'callBackUrl' => $this->settings['callback_url'],
-            'amount' => $this->invoice->getAmount(),
+            'amount' => $this->getInvoice()->getAmount(),
             'localDate' => now()->format('Ymd'),
             'localTime' => now()->format('Gis'),
-            'orderId' => (int)$this->invoice->getInvoiceId(),
+            'orderId' => (int)$this->getInvoice()->getInvoiceId(),
             'additionalData' => $description,
-            'payerId' => $this->invoice->getUserId()
+            'payerId' => $this->getInvoice()->getUserId()
         );
     }
 
     protected function getVerificationData(): array
     {
-        $orderId = request('SaleOrderId') ?? $this->invoice->getInvoiceId();
-        $verifySaleOrderId = request('SaleOrderId') ?? $this->invoice->getInvoiceId();
-        $verifySaleReferenceId = request('SaleReferenceId') ?? $this->invoice->getTransactionId();
+        $orderId = request('SaleOrderId', $this->getInvoice()->getInvoiceId());
+        $verifySaleOrderId = request('SaleOrderId', $this->getInvoice()->getInvoiceId());
+        $verifySaleReferenceId = request('SaleReferenceId', $this->getInvoice()->getTransactionId());
 
         return array(
             'terminalId' => $this->settings['terminal_id'],
@@ -223,13 +221,13 @@ class Mellat extends Driver
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+        if (strlen($phoneNumber) === 12 and Str::startsWith($phoneNumber, '98')) {
             return $phoneNumber;
         }
-        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '0')) {
+        if (strlen($phoneNumber) === 11 and Str::startsWith($phoneNumber, '0')) {
             return Str::replaceFirst('0', '98', $phoneNumber);
         }
-        if (strlen($phoneNumber) == 10) {
+        if (strlen($phoneNumber) === 10) {
             return '98' . $phoneNumber;
         }
         return $phoneNumber;

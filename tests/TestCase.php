@@ -17,7 +17,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     {
         $zarinpalSettings = require __DIR__ . '../../config/gateway_zarinpal.php';
         $app['config']->set('gateway_zarinpal', $zarinpalSettings);
-        $app['config']->set('multipayment.default_gateway', 'zarinpal.default');
+        $app['config']->set('multipayment.default_gateway', 'zarinpal.main');
         $app['config']->set('multipayment.convert_to_rials', true);
     }
 }

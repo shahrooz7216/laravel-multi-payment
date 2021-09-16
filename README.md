@@ -1,59 +1,87 @@
+<div dir="rtl">
+
 [![Latest Stable Version](https://poser.pugx.org/omalizadeh/laravel-multi-payment/v)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
 [![Tests](https://github.com/omalizadeh/laravel-multi-payment/actions/workflows/tests.yml/badge.svg)](https://github.com/omalizadeh/laravel-multi-payment/actions/workflows/tests.yml)
 [![Total Downloads](https://poser.pugx.org/omalizadeh/laravel-multi-payment/downloads)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
 [![License](https://poser.pugx.org/omalizadeh/laravel-multi-payment/license)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
 
-# Laravel Multi Payment
+# پکیج پرداخت آنلاین (اتصال به درگاه بانکی) در لاراول
 
-This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations.
-Supports laravel **v7.0+** and requires php **v7.4+**
+این یک پکیج لاراول برای استفاده از درگاه های پرداخت آنلاین است که از درگاه های مختلف (بصورت درایور) با امکان تنظیم چند
+حساب برای یک نوع درگاه پشتیبانی می کند. اگه درگاه موردنظرتون پشتیبانی نمیشه، میتونید خودتون از کلاس ها و قراردادهای مربوطه استفاده کنید و بنویسید و به راحتی استفاده
+کنید و اگه خواستید Pull Request بزنید تا به پکیج اصلی اضافه بشه. خوشحال میشم در مسیر تکمیل پکیج کمک کنید.
+    
+> اگه از پکیج استفاده کردین، ⭐ فراموش نشه! 😎
+
+</div>
+
+> [English documents][readme-link-en]
 
 <div dir="rtl">
 
-> **[مستندات فارسی][readme-link-fa]**
+## حداقل نیازمندی ها
+
+- **PHP v7.4**
+- **Laravel v7.0**
+
+## درگاه های پشتیبانی شده
+
+- [بانک ملت (به پرداخت)](https://behpardakht.com)
+- [بانک سامان (سپ)](https://sep.ir)
+- [بانک پاسارگاد (پپ)](https://pep.co.ir)
+- [بانک اقتصاد نوین (پرداخت نوین آرین)](https://pna.co.ir/)
+- [زرین پال](https://zarinpal.com)
+
+## نصب
+
+نصب از طریق composer:
+
 </div>
-
-## Supported Gateways
-
-- [Mellat (Behpardakht)](https://behpardakht.com)
-- [Saman (Sep)](https://sep.ir)
-- [Pasargad (Pep)](https://pep.co.ir)
-- [Eghtesad Novin (Pardakht Novin)](https://pna.co.ir)
-- [Zarinpal](https://zarinpal.com)
-
-## Installation & Configuration
-
-Install using composer
 
 ```bash 
   composer require omalizadeh/laravel-multi-payment
 ```
 
-Publish main config file
+<div dir="rtl">
+انتشار فایل تنظیمات اصلی با دستور زیر:
+</div>
 
 ```bash
   php artisan vendor:publish --tag=multipayment-config
 ```
 
-Publish gateway config file based on these tags.
+<div dir="rtl">
+انتشار فایل تنظیمات درگاه مورد نظر با استفاده از تگ هر درگاه
+</div>
+
 - zarinpal-config
 - mellat-config
 - saman-config
 - pasargad-config
 - novin-config
-  
-For example:
+
+<div dir="rtl">
+به عنوان مثال از دستور زیر می توان برای انتشار فایل تنظیمات درگاه زرین پال استفاده کرد:
+</div>
 
 ```bash
   php artisan vendor:publish --tag=zarinpal-config
 ```
 
-Also you can publish view file for gateway redirection and customize it
+<div dir="rtl">
+یا می توانید تمامی فایل های تنظیمات پکیج را با دستور زیر منتشر کنید:
+</div>
+
 ```bash
-  php artisan vendor:publish --tag=multipayment-view
+  php artisan vendor:publish --provider=Omalizadeh\MultiPayment\Providers\MultiPaymentServiceProvider
 ```
 
-In main config file `multipayment.php`, you can specify default driver. For example, `zarinpal.second` value states that `zarinpal` gateway with configuration under `second` key section on zarinpal config file will be used. There is also an option for auto amount conversion from Iranian Tomans to Iranian Rials currency (IRR) and vice versa.
+<div dir="rtl">
+    
+## تنظیمات
+    
+در تنظیمات اصلی (فایل multipayment.php)، می توانید در قسمت default_config درگاه پیش فرض را انتخاب کنید. مثلا مقدار zarinpal.second نشان دهنده استفاده از درگاه زرین پال با اطلاعات ورودی و تنظیمات second هست. قسمتی هم برای تنظیم واحد پولی درنظر گرفته شده که هنگام اتصال به درگاه تبدیل به ریال یا تومان بطور خودکار انجام شود.
+</div>
 
 ```php
      /**
@@ -69,9 +97,24 @@ In main config file `multipayment.php`, you can specify default driver. For exam
     'convert_to_rials' => true
 ```
 
-In each gateway config file, you can specify multiple credentials and therefore you may have multiple gateways for your app.
+<div dir="rtl">
+در فایل تنظیمات مربوط به هر درگاه، مسیر کلاس درایور مربوطه، مشخصات درگاه و هدر درخواست ها یا تنظیمات مربوط به SOAP قابل تغییر هستند.
+</div>
 
 ```php
+    /**
+     *  driver class namespace
+     */
+    'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal\Zarinpal::class,
+
+    /**
+     *  rest api call headers
+     */
+    'request_headers' => [
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+    ],
+
      /**
      *  gateway configurations
      */
@@ -89,52 +132,90 @@ In each gateway config file, you can specify multiple credentials and therefore 
     ]
 ```
 
-## Usage
+<div dir="rtl">
 
-Gateway payment has three major phases. first is purchase (start process by calling gateway api for a
-transaction_id/token). second is payment (opening gateway payment web page). third is payment verification (checking
-payment was successful).
+## نحوه استفاده
 
-### Purchase & Payment
+پرداخت با درگاه در این پکیج از دو بخش اصلی تشکیل می شود. مرحله اول درخواست پرداخت و ارجاع به درگاه (Purchase) و مرحله دوم تایید پرداخت (Verification) است.
 
-`Inovice` objects hold payment data. first you create an invoice, set amount and other information, then you pass
-invoice to a `GatewayPayment` object to init payment process.
+### پرداخت و ارجاع به درگاه
 
-```php
-      $invoice = new Invoice(10000);
-      $invoice->setPhoneNumber("989123456789");
-      // You can change gateway by sending gateway name as the second argument
-      $gatewayPayment = new GatewayPayment($invoice, 'zarinpal.first');
-      return $gatewayPayment->purchase(function ($transactionId) {
-          // Save transaction_id and do stuff...
-      })->pay()->render();
-```
+تمامی اطلاعات مربوط به پرداخت در صورتحساب (کلاس Invoice) ذخیره خواهند شد. برای شروع پرداخت، ابتدا یک شی از کلاس صورتحساب
+ساخته و سپس اطلاعات مربوط به پرداخت مانند مبلغ در آن ذخیره می شود. در نهایت با استفاده از کلاس درگاه پرداخت که به صورت Facade پیاده سازی شده است، (PaymentGateway) پرداخت صورتحساب انجام می شود.
 
-### Verification
-
-After gateway redirection to your app, you must create an invoice and set it's transaction_id then use `GatewayPayment`
-for invoice payment verification.
+</div>
 
 ```php
-      try {
-          // Get amount & transaction_id from database
-          $invoice = new Invoice($amount);
-          $invoice->setTransactionId($transactionId);
-          $gatewayPayment = new GatewayPayment($invoice, 'zarinpal.first');
-          $receipt = $gatewayPayment->verify();
-          $traceNo = $receipt->getTraceNumber();
-          // Save traceNo and return response
-      } catch (PaymentFailedException $exception) {
-          // Handle exception for failed payments
-          return $exception->getMessage();
-      }
+    use Omalizadeh\MultiPayment\Facades\PaymentGateway;
+    
+    ////
+    
+    $invoice = new Invoice(10000);
+    $invoice->setPhoneNumber("989123456789");
+    
+    return PaymentGateway::purchase($invoice, function (string $transactionId) {
+        // Save transaction_id and do stuff...
+    })->render();
 ```
 
-## Acknowledgements
+<div dir="rtl">
 
-- [Shetab Multipay](https://github.com/shetabit/multipay)
-- [Shetab Payment](https://github.com/shetabit/payment)
+با افزودن شماره همراه کاربر به صورتحساب، درگاه برای تجربه کاربری بهتر، شماره کارت های ثبت شده با آن را هنگام پرداخت به پرداخت کننده پیشنهاد می دهد. قبل از صدا زدن متد purchase برای خرید، می توان با استفاده از متد setGateway درگاه مورد استفاده را تغییر داد.
 
-[readme-link-fa]: README-FA.md
+</div>
 
-[readme-link-en]: README.md
+```php
+    $invoice = new Invoice(10000);
+
+    return PaymentGateway::setGateway('mellat.app')
+            ->purchase($invoice, function (string $transactionId) {
+                // Save transaction_id and do stuff...
+            })->render();
+```
+
+<div dir="rtl">
+
+### تایید پرداخت
+
+بعد از بازگشت کاربر از درگاه پرداخت، صورتحسابی با شماره تراکنش و مبلغ موردنظر تشکیل داده و با استفاده از متد verify در PaymentGateway
+موفقیت آمیز بودن آن را بررسی می کنید. دقت کنید که اگر صورتحساب مربوط به درگاه پیش فرض نیست، قبل از صحت سنجی درگاه را با متد مربوطه تغییر دهید.
+
+</div>
+
+```php
+    try {
+        // Get amount & transaction_id from database or gateway request
+        $invoice = new Invoice($amount, $transactionId);
+        $receipt = PaymentGateway::verify($invoice);
+        // Save receipt data and return response
+        //
+    } catch (PaymentAlreadyVerifiedException $exception) {
+        // Optional: Handle repeated verification request
+    } catch (PaymentFailedException $exception) {
+        // Handle exception for failed payments
+        return $exception->getMessage();
+    }
+```
+
+<div dir="rtl">
+
+خروجی تایید پرداخت، یک شیء از کلاس `Receipt` است که می توان از متدهای مختلف آن برای بدست آوردن اطلاعات مختلف استفاده
+کرد.
+
+- `getInvoiceId`: شماره صورتحساب
+- `getTransactionId`: کد تراکنش
+- `getTraceNumber`: شماره پیگیری
+- `getReferenceId`: شماره ارجاع بانکی
+- `getCardNo`: شماره کارت پرداخت کننده
+
+### سایر امکانات
+
+#### آخرین پرداخت های موفق تایید نشده
+
+با استفاده از متد `unverifiedPayments` در PaymentGateway می توانید لیست آخرین پرداخت هایی که موفقیت آمیز بودند اما هنوز از سمت پروژه شما verify یا تایید نشده را مشاهده کنید. فعلا فقط درگاه زرین پال از این قابلیت پشتیبانی می کند.
+
+</div>
+
+[readme-link-fa]: README.md
+
+[readme-link-en]: README-EN.md

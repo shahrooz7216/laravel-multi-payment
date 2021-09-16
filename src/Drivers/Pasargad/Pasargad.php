@@ -9,6 +9,7 @@ use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Drivers\Pasargad\Helpers\RSAProcessor;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
+use Omalizadeh\MultiPayment\Receipt;
 
 class Pasargad extends Driver
 {
@@ -23,7 +24,7 @@ class Pasargad extends Driver
             if ($result['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($result['Message'], $response->status());
             }
-            $this->invoice->setToken($result['Token']);
+            $this->getInvoice()->setToken($result['Token']);
 
             return $data['InvoiceNumber'];
         }
@@ -33,14 +34,15 @@ class Pasargad extends Driver
     public function pay(): RedirectionForm
     {
         $payUrl = $this->getPaymentUrl();
+
         $data = [
-            'Token' => $this->invoice->getToken()
+            'Token' => $this->getInvoice()->getToken()
         ];
 
-        return $this->redirectWithForm($payUrl, $data);
+        return $this->redirect($payUrl, $data);
     }
 
-    public function verify(): string
+    public function verify(): Receipt
     {
         $checkTransactionData = $this->getCheckTransactionData();
         $response = $this->callApi($this->getCheckTransactionUrl(), $checkTransactionData);
@@ -60,13 +62,15 @@ class Pasargad extends Driver
                 if ($verificationResult['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
                     throw new PaymentFailedException($verificationResult['Message'], $response->status());
                 }
-                $this->invoice->setTransactionId($checkTransactionResult['TransactionReferenceID']);
-                $this->invoice->setReferenceId($checkTransactionResult['ReferenceNumber']);
-                $this->invoice->setCardNo($verificationResult['MaskedCardNumber']);
+                $this->getInvoice()->setTransactionId($checkTransactionResult['TransactionReferenceID']);
 
-                return $checkTransactionResult['TraceNumber'];
+                return new Receipt(
+                    $this->getInvoice(),
+                    $checkTransactionResult['TraceNumber'],
+                    $checkTransactionResult['ReferenceNumber'],
+                    $verificationResult['MaskedCardNumber']
+                );
             }
-            throw new PaymentFailedException($response->body(), $response->status());
         }
         throw new PaymentFailedException($response->body(), $response->status());
     }
@@ -103,7 +107,7 @@ class Pasargad extends Driver
         if (empty($this->settings['terminal_code'])) {
             throw new InvalidConfigurationException('Terminal code has not been set.');
         }
-        $mobile = $this->invoice->getPhoneNumber();
+        $mobile = $this->getInvoice()->getPhoneNumber();
         if (!empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
@@ -113,10 +117,10 @@ class Pasargad extends Driver
             'MerchantCode' => $this->settings['merchant_code'],
             'TerminalCode' => $this->settings['terminal_code'],
             'RedirectAddress' => $this->settings['callback_url'],
-            'Amount' => $this->invoice->getAmount(),
+            'Amount' => $this->getInvoice()->getAmount(),
             'Mobile' => $mobile,
-            'Email' => $this->invoice->getEmail(),
-            'InvoiceNumber' => $this->invoice->getInvoiceId(),
+            'Email' => $this->getInvoice()->getEmail(),
+            'InvoiceNumber' => $this->getInvoice()->getInvoiceId(),
             'InvoiceDate' => now()->format('Y/m/d H:i:s'),
             'Timestamp' => now()->format('Y/m/d H:i:s'),
         ];
@@ -136,7 +140,7 @@ class Pasargad extends Driver
         return [
             'MerchantCode' => $this->settings['merchant_code'],
             'TerminalCode' => $this->settings['terminal_code'],
-            'InvoiceNumber' => request('iN') ?? $this->invoice->getInvoiceId(),
+            'InvoiceNumber' => request('iN') ?? $this->getInvoice()->getInvoiceId(),
             'InvoiceDate' => request('iD') ?? now()->format('Y/m/d H:i:s'),
         ];
     }

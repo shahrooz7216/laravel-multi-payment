@@ -49,7 +49,10 @@
         "laravel": {
             "providers": [
                 "Omalizadeh\\MultiPayment\\Providers\\MultiPaymentServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "PaymentGateway": "Omalizadeh\\MultiPayment\\Facades\\PaymentGateway"
+            }
         }
     },
     "prefer-stable": true
