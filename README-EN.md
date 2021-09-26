@@ -22,6 +22,7 @@ Supports laravel **v7.0+** and requires php **v7.4+**
 - [Pasargad Bank (Pep)](https://pep.co.ir)
 - [Eghtesad Novin Bank (Pardakht Novin)](https://pna.co.ir)
 - [Zarinpal](https://zarinpal.com)
+- [Zibal](https://zibal.ir)
 
 ## Installation & Configuration
 
