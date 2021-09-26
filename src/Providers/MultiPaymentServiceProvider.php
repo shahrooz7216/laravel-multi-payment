@@ -44,6 +44,10 @@ class MultiPaymentServiceProvider extends ServiceProvider
             ], 'zarinpal-config');
 
             $this->publishes([
+                __DIR__.'/../../config/gateway_zibal.php' => config_path('gateway_zibal.php'),
+            ], 'zibal-config');
+
+            $this->publishes([
                 __DIR__.'/../../config/gateway_mellat.php' => config_path('gateway_mellat.php')
             ], 'mellat-config');
 
