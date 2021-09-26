@@ -3,7 +3,6 @@
 namespace Omalizadeh\MultiPayment;
 
 use Ramsey\Uuid\Uuid;
-use InvalidArgumentException;
 
 class Invoice
 {
@@ -17,10 +16,15 @@ class Invoice
     protected ?string $phoneNumber = null;
     protected ?string $transactionId = null;
 
+    /**
+     * @param  float  $amount
+     * @param  string|null  $transactionId
+     */
     public function __construct(float $amount, ?string $transactionId = null)
     {
         $this->setAmount($amount);
         $this->uuid = Uuid::uuid4()->toString();
+
         if (!empty($transactionId)) {
             $this->setTransactionId($transactionId);
         }
@@ -192,6 +196,7 @@ class Invoice
         if (empty($this->invoiceId)) {
             $this->invoiceId = crc32($this->getUuid()).random_int(0, 99999);
         }
+
         return $this->invoiceId;
     }
 
