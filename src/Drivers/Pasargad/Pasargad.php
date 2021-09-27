@@ -2,18 +2,19 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Pasargad;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Drivers\Pasargad\Helpers\RSAProcessor;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Receipt;
+use Omalizadeh\MultiPayment\RedirectionForm;
 
 class Pasargad extends Driver
 {
-    const BANK_BUY_ACTION_CODE = 1003;
+    protected const BANK_BUY_ACTION_CODE = 1003;
 
     public function purchase(): string
     {
@@ -77,15 +78,14 @@ class Pasargad extends Driver
 
     private function callApi(string $url, array $data)
     {
-        $body = json_encode($data);
+        $body = json_encode($data, JSON_THROW_ON_ERROR);
         $sign = $this->signData($body);
         $headers = $this->getRequestHeaders();
         $headers = array_merge($headers, [
             'Sign' => $sign
         ]);
-        $response = Http::withHeaders($headers)->post($url, $data);
 
-        return $response;
+        return Http::withHeaders($headers)->post($url, $data);
     }
 
     private function signData(string $stringifiedData)
@@ -185,10 +185,10 @@ class Pasargad extends Driver
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+        if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '', $phoneNumber);
         }
-        if (strlen($phoneNumber) == 11 and Str::startsWith($phoneNumber, '0')) {
+        if (strlen($phoneNumber) === 11 && Str::startsWith($phoneNumber, '0')) {
             return Str::replaceFirst('0', '', $phoneNumber);
         }
         return $phoneNumber;

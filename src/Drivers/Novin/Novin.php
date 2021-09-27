@@ -14,20 +14,23 @@ use Omalizadeh\MultiPayment\Receipt;
 
 class Novin extends Driver
 {
-    const BANK_BUY_TRANSACTION_TYPE = 'EN_GOODS';
+    protected const BANK_BUY_TRANSACTION_TYPE = 'EN_GOODS';
 
     private ?string $sessionId = null;
 
     public function purchase(): string
     {
         $response = $this->callApi($this->getLoginUrl(), $this->getLoginData());
+
         if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
             $this->sessionId = $response['SessionId'];
         } else {
             throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
         }
+
         $purchaseData = $this->getPurchaseData();
         $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
+
         if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
             $dataToSign = $response['DataToSign'];
             $dataUniqueId = $response['UniqueId'];
@@ -55,24 +58,29 @@ class Novin extends Driver
             'Token' => $this->getInvoice()->getToken(),
             'Language' => $this->getLanguage()
         ];
-        $payUrl .= ('?token=' . $data['Token'] . '&language=' . $data['Language']);
+        $payUrl .= ('?token='.$data['Token'].'&language='.$data['Language']);
 
         return $this->redirect($payUrl, $data);
     }
 
     public function verify(): Receipt
     {
-        if (!empty(request('State')) and strtoupper(request('State')) !== 'OK') {
+        if (!empty(request('State')) && strtoupper(request('State')) !== 'OK') {
             throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
 
         $verificationData = $this->getVerificationData();
         $response = $this->callApi($this->getVerificationUrl(), $verificationData);
-        if ($response['Result'] == $this->getSuccessResponseStatusCode() and $response['Amount'] == $this->getInvoice()->getAmount()) {
+        if ($response['Result'] == $this->getSuccessResponseStatusCode() && $response['Amount'] == $this->getInvoice()->getAmount()) {
             $this->getInvoice()->setTransactionId(request('RefNum'));
             $this->getInvoice()->setInvoiceId(request('ResNum'));
 
-            return new Receipt($this->getInvoice(), request('TraceNo'), request('CustomerRefNum'), request('CardMaskPan'));
+            return new Receipt(
+                $this->getInvoice(),
+                request('TraceNo'),
+                request('CustomerRefNum'),
+                request('CardMaskPan')
+            );
         }
         throw new PaymentFailedException($this->getStatusMessage($response['Result']));
     }
@@ -90,8 +98,8 @@ class Novin extends Driver
         openssl_pkcs7_sign(
             $this->getUnsignedDataFilePath(),
             $this->getSignedDataFilePath(),
-            'file://' . $this->settings['certificate_path'],
-            array('file://' . $this->settings['certificate_path'], $this->settings['certificate_password']),
+            'file://'.$this->settings['certificate_path'],
+            array('file://'.$this->settings['certificate_path'], $this->settings['certificate_password']),
             array(),
             PKCS7_NOSIGS
         );
@@ -221,17 +229,17 @@ class Novin extends Driver
 
     protected function getLoginUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'merchantLogin/';
+        return $this->getBaseRestServiceUrl().'merchantLogin/';
     }
 
     protected function getPurchaseUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'generateTransactionDataToSign/';
+        return $this->getBaseRestServiceUrl().'generateTransactionDataToSign/';
     }
 
     protected function getTokenGenerationUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'generateSignedDataToken/';
+        return $this->getBaseRestServiceUrl().'generateSignedDataToken/';
     }
 
     protected function getPaymentUrl(): string
@@ -241,7 +249,7 @@ class Novin extends Driver
 
     protected function getVerificationUrl(): string
     {
-        return $this->getBaseRestServiceUrl() . 'verifyMerchantTrans/';
+        return $this->getBaseRestServiceUrl().'verifyMerchantTrans/';
     }
 
     private function getBaseRestServiceUrl(): string
@@ -264,11 +272,11 @@ class Novin extends Driver
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
     {
-        if (strlen($phoneNumber) == 12 and Str::startsWith($phoneNumber, '98')) {
+        if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
-        if (strlen($phoneNumber) == 10 and Str::startsWith($phoneNumber, '9')) {
-            return '0' . $phoneNumber;
+        if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
+            return '0'.$phoneNumber;
         }
 
         return $phoneNumber;
@@ -276,11 +284,11 @@ class Novin extends Driver
 
     private function getUnsignedDataFilePath(): string
     {
-        return $this->settings['temp_files_dir'] . 'unsigned.txt';
+        return $this->settings['temp_files_dir'].'unsigned.txt';
     }
 
     private function getSignedDataFilePath(): string
     {
-        return $this->settings['temp_files_dir'] . 'signed.txt';
+        return $this->settings['temp_files_dir'].'signed.txt';
     }
 }

@@ -8,41 +8,41 @@ class RSA
 
     public static function rsaEncrypt($message, $publicKey, $modulus, $keylength)
     {
-        $padded = RSA::addPKCS1Padding($message, true, $keylength / 8);
-        $number = RSA::binaryToNumber($padded);
-        $encrypted = RSA::powMod($number, $publicKey, $modulus);
-        $result = RSA::numberToBinary($encrypted, $keylength / 8);
-        return $result;
+        $padded = self::addPKCS1Padding($message, true, $keylength / 8);
+        $number = self::binaryToNumber($padded);
+        $encrypted = self::powMod($number, $publicKey, $modulus);
+
+        return self::numberToBinary($encrypted, $keylength / 8);
     }
 
     public static function rsaDecrypt($message, $privateKey, $modulus, $keylength)
     {
-        $number = RSA::binaryToNumber($message);
-        $decrypted = RSA::powMod($number, $privateKey, $modulus);
-        $result = RSA::numberToBinary($decrypted, $keylength / 8);
-        return RSA::removePKCS1Padding($result, $keylength / 8);
+        $number = self::binaryToNumber($message);
+        $decrypted = self::powMod($number, $privateKey, $modulus);
+        $result = self::numberToBinary($decrypted, $keylength / 8);
+        return self::removePKCS1Padding($result, $keylength / 8);
     }
 
     public static function rsaSign($message, $privateKey, $modulus, $keylength)
     {
-        $padded = RSA::addPKCS1Padding($message, false, $keylength / 8);
-        $number = RSA::binaryToNumber($padded);
-        $signed = RSA::powMod($number, $privateKey, $modulus);
-        $result = RSA::numberToBinary($signed, $keylength / 8);
-        return $result;
+        $padded = self::addPKCS1Padding($message, false, $keylength / 8);
+        $number = self::binaryToNumber($padded);
+        $signed = self::powMod($number, $privateKey, $modulus);
+
+        return self::numberToBinary($signed, $keylength / 8);
     }
 
     public static function rsaVerify($message, $publicKey, $modulus, $keylength)
     {
-        return RSA::rsaDecrypt($message, $publicKey, $modulus, $keylength);
+        return self::rsaDecrypt($message, $publicKey, $modulus, $keylength);
     }
 
     public static function rsaKypVerify($message, $publicKey, $modulus, $keylength)
     {
-        $number = RSA::binaryToNumber($message);
-        $decrypted = RSA::powMod($number, $publicKey, $modulus);
-        $result = RSA::numberToBinary($decrypted, $keylength / 8);
-        return RSA::removeKYPPadding($result, $keylength / 8);
+        $number = self::binaryToNumber($message);
+        $decrypted = self::powMod($number, $publicKey, $modulus);
+        $result = self::numberToBinary($decrypted, $keylength / 8);
+        return self::removeKYPPadding($result, $keylength / 8);
     }
 
     public static function powMod($p, $q, $r)
@@ -54,7 +54,7 @@ class RSA
             $rem = bcmod($div, 2);
             $div = bcdiv($div, 2);
             if ($rem) {
-                array_push($factors, $powerOfTwo);
+                $factors[] = $powerOfTwo;
             }
             $powerOfTwo++;
         }
@@ -67,13 +67,14 @@ class RSA
                 $partRes = bcmod($partRes, $r);
                 $idx++;
             }
-            array_push($partialResults, $partRes);
+            $partialResults[] = $partRes;
         }
         $result = "1";
         foreach ($partialResults as $partRes) {
             $result = bcmul($result, $partRes);
             $result = bcmod($result, $r);
         }
+
         return $result;
     }
 
