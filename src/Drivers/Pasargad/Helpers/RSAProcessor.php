@@ -7,10 +7,10 @@ class RSAProcessor
     public const KEY_TYPE_XML_FILE = 'xml_file';
     public const KEY_TYPE_XML_STRING = 'xml_string';
 
-    private $publicKey = null;
-    private $privateKey = null;
-    private $modulus = null;
-    private $keyLength = "1024";
+    private $publicKey;
+    private $privateKey;
+    private $modulus;
+    private $keyLength;
 
     public function __construct($key, $keyType = null)
     {
@@ -20,7 +20,7 @@ class RSAProcessor
         if ($keyType == null || $keyType == self::KEY_TYPE_XML_STRING) {
             $xmlObject = simplexml_load_string($key);
         } elseif ($keyType == self::KEY_TYPE_XML_FILE) {
-            $xmlObject = simplexml_load_file($key);
+            $xmlObject = simplexml_load_string(file_get_contents($key));
         }
 
         $this->modulus = RSA::binaryToNumber(base64_decode($xmlObject->Modulus));

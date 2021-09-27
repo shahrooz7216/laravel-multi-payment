@@ -155,7 +155,7 @@
     
     return PaymentGateway::purchase($invoice, function (string $transactionId) {
         // Save transaction_id and do stuff...
-    })->render();
+    })->view();
 ```
 
 <div dir="rtl">
@@ -170,7 +170,7 @@
     return PaymentGateway::setGateway('mellat.app')
             ->purchase($invoice, function (string $transactionId) {
                 // Save transaction_id and do stuff...
-            })->render();
+            })->view();
 ```
 
 <div dir="rtl">
