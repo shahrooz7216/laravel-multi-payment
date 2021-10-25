@@ -11,6 +11,7 @@ class Invoice
     protected ?int $userId = null;
     protected ?string $token = null;
     protected ?string $email = null;
+    protected ?string $userName = null;
     protected ?string $invoiceId = null;
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
@@ -96,6 +97,17 @@ class Invoice
     }
 
     /**
+     * @param  string  $name
+     * @return $this
+     */
+    public function setUserName(string $name): Invoice
+    {
+        $this->userName = $name;
+
+        return $this;
+    }
+
+    /**
      * @param  int  $userId
      * @return $this
      */
@@ -177,6 +189,14 @@ class Invoice
     public function getEmail(): ?string
     {
         return $this->email;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getUserName(): ?string
+    {
+        return $this->userName;
     }
 
     /**
