@@ -84,7 +84,7 @@ class Saman extends Driver
     protected function getVerificationData(): array
     {
         return [
-            'RefNum' => request('RefNum') ?? $this->getInvoice()->getTransactionId(),
+            'RefNum' => request('RefNum', $this->getInvoice()->getTransactionId()),
             'MerchantID' => $this->settings['terminal_id']
         ];
     }
