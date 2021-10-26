@@ -5,7 +5,6 @@ namespace Omalizadeh\MultiPayment\Drivers\IDPay;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
-use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
@@ -40,6 +39,17 @@ class IDPay extends Driver
 
     public function verify(): Receipt
     {
+        $status = (int) request('status');
+
+        if (!in_array($status, [
+            $this->getPendingVerificationStatusCode(),
+            $this->getPaymentAlreadyVerifiedStatusCode(),
+            $this->getSuccessResponseStatusCode()
+        ], true)
+        ) {
+            throw new PaymentFailedException($this->getStatusMessage($status), $status);
+        }
+
         $response = $this->callApi($this->getVerificationUrl(), $this->getVerificationData());
 
         if (isset($response['error_code'])) {
@@ -153,6 +163,11 @@ class IDPay extends Driver
         return 100;
     }
 
+    private function getPendingVerificationStatusCode(): int
+    {
+        return 10;
+    }
+
     private function getPaymentAlreadyVerifiedStatusCode(): int
     {
         return 101;
@@ -177,11 +192,7 @@ class IDPay extends Driver
     {
         $response = Http::withHeaders($this->getRequestHeaders())->post($url, $data);
 
-        if ($response->successful()) {
-            return $response->json();
-        }
-
-        throw new HttpRequestFailedException($response->body(), $response->status());
+        return $response->json();
     }
 
     private function getRequestHeaders(): array
