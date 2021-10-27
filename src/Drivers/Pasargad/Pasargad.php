@@ -140,8 +140,8 @@ class Pasargad extends Driver
         return [
             'MerchantCode' => $this->settings['merchant_code'],
             'TerminalCode' => $this->settings['terminal_code'],
-            'InvoiceNumber' => request('iN') ?? $this->getInvoice()->getInvoiceId(),
-            'InvoiceDate' => request('iD') ?? now()->format('Y/m/d H:i:s'),
+            'InvoiceNumber' => request('iN', $this->getInvoice()->getInvoiceId()),
+            'InvoiceDate' => request('iD', now()->format('Y/m/d H:i:s')),
         ];
     }
 

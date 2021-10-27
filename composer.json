@@ -19,7 +19,9 @@
         "pasargad",
         "eghtesad novin",
         "zarinpal",
-        "zibal"
+        "zibal",
+        "idpay",
+        "payir"
     ],
     "authors": [
         {
@@ -30,6 +32,8 @@
     "require": {
         "php": "^7.4|^8.0",
         "ext-json": "*",
+        "guzzlehttp/guzzle": "^6.5.5|^7.0.1",
+        "illuminate/http": "^7.0|^8.0",
         "illuminate/support": "^7.0|^8.0",
         "ramsey/uuid": "^4.0"
     },

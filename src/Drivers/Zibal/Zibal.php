@@ -84,7 +84,6 @@ class Zibal extends Driver
         $description = $this->getInvoice()->getDescription() ?? $this->settings['description'];
 
         $mobile = $this->getInvoice()->getPhoneNumber();
-        $email = $this->getInvoice()->getEmail();
 
         if (!empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);

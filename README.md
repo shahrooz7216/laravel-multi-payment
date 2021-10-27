@@ -28,8 +28,10 @@
 - [بانک ملت (به پرداخت)](https://behpardakht.com)
 - [بانک سامان (سپ)](https://sep.ir)
 - [بانک پاسارگاد (پپ)](https://pep.co.ir)
-- [بانک اقتصاد نوین (پرداخت نوین آرین)](https://pna.co.ir/)
+- [بانک اقتصاد نوین (پرداخت نوین آرین)](https://pna.co.ir)
 - [زرین پال](https://zarinpal.com)
+- [آیدی پی](https://idpay.ir)
+- [شبکه پرداخت پی](https://pay.ir)
 - [زیبال](https://zibal.ir)
 
 ## نصب

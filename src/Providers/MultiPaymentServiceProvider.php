@@ -62,6 +62,14 @@ class MultiPaymentServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../../config/gateway_pasargad.php' => config_path('gateway_pasargad.php')
             ], 'pasargad-config');
+
+            $this->publishes([
+                __DIR__.'/../../config/gateway_idpay.php' => config_path('gateway_idpay.php')
+            ], 'idpay-config');
+
+            $this->publishes([
+                __DIR__.'/../../config/gateway_payir.php' => config_path('gateway_payir.php')
+            ], 'payir-config');
         }
     }
 }
