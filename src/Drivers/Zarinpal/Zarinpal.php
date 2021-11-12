@@ -20,10 +20,19 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     public function purchase(): string
     {
         $response = $this->callApi($this->getPurchaseUrl(), $this->getPurchaseData());
+
+        if (isset($response['errors']['code'])) {
+            $responseCode = (int) $response['errors']['code'];
+            $message = $this->getStatusMessage($responseCode);
+
+            throw new PurchaseFailedException($message, $responseCode);
+        }
+
         if (empty($response['data']['authority']) || (int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
             throw new PurchaseFailedException($message, $response['data']['code']);
         }
+
         $this->getInvoice()->setTransactionId($response['data']['authority']);
 
         return $response['data']['authority'];
@@ -52,6 +61,14 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         }
 
         $response = $this->callApi($this->getVerificationUrl(), $this->getVerificationData());
+
+        if (isset($response['errors']['code'])) {
+            $responseCode = (int) $response['errors']['code'];
+            $message = $this->getStatusMessage($responseCode);
+
+            throw new PaymentFailedException($message, $responseCode);
+        }
+
         $responseCode = (int) $response['data']['code'];
 
         if ($responseCode !== $this->getSuccessResponseStatusCode()) {
@@ -64,7 +81,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         $refId = $response['data']['ref_id'];
 
-        return new Receipt($this->getInvoice(), $refId, $refId);
+        return new Receipt($this->getInvoice(), $refId, $refId, $response['data']['card_pan'] ?? null);
     }
 
     public function latestUnverifiedPayments(): array
@@ -135,21 +152,26 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
     protected function getStatusMessage($statusCode): string
     {
         $messages = [
-            -1 => "اطلاعات ارسال شده ناقص است.",
-            -2 => "IP و يا مرچنت كد پذيرنده صحيح نيست",
-            -3 => "با توجه به محدوديت هاي شاپرك امكان پرداخت با رقم درخواست شده ميسر نمي باشد",
-            -4 => "سطح تاييد پذيرنده پايين تر از سطح نقره اي است.",
-            -11 => "درخواست مورد نظر يافت نشد.",
-            -12 => "امكان ويرايش درخواست ميسر نمي باشد.",
-            -21 => "هيچ نوع عمليات مالي براي اين تراكنش يافت نشد",
-            -22 => "تراكنش نا موفق ميباشد",
-            -33 => "رقم تراكنش با رقم پرداخت شده مطابقت ندارد",
-            -34 => "سقف تقسيم تراكنش از لحاظ تعداد يا رقم عبور نموده است",
-            -40 => "اجازه دسترسي به متد مربوطه وجود ندارد.",
-            -41 => "اطلاعات ارسال شده مربوط به AdditionalData غيرمعتبر ميباشد.",
-            -42 => "مدت زمان معتبر طول عمر شناسه پرداخت بايد بين 30 دقيه تا 45 روز مي باشد.",
-            -54 => "درخواست مورد نظر آرشيو شده است",
-            101 => "عمليات پرداخت موفق بوده و قبلا PaymentVerification تراكنش انجام شده است.",
+            -9 => "خطای اعتبار سنجی",
+            -10 => "آی پی یا مرچنت کد صحیح نیست.",
+            -11 => "مرچنت کد فعال نیست.",
+            -12 => "تلاش بیش از حد در یک بازه زمانی کوتاه",
+            -15 => "ترمینال شما به حالت تعلیق درآمده است.",
+            -16 => "سطح تایید پذیرنده پایین تر از سطح نقره ای است.",
+            -30 => "اجازه دسترسی به تسویه اشتراکی شناور ندارید.",
+            -31 => "حساب بانکی تسویه را به پنل اضافه کنید، مقادیر وارد شده برای تسهیم صحیح نیست.",
+            -32 => "مجموع درصدهای تسهیم از سقف مجاز فراتر رفته است.",
+            -33 => "درصدهای وارد شده صحیح نیست.",
+            -34 => "مبلغ از کل تراکنش بالاتر است.",
+            -35 => "تعداد افراد دریافت کننده تسهیم بیش از حد مجاز است.",
+            -40 => "خطا در اطلاعات ورودی",
+            -50 => "مقدار پرداخت شده با مبلغ وریفای متفاوت است.",
+            -51 => "پرداخت ناموفق",
+            -52 => "خطای غیرمنتظره، با پشتیبانی در تماس باشید.",
+            -53 => "اتوریتی برای این مرچنت نیست.",
+            -54 => "اتوریتی نامعتبر",
+            100 => "عملیات موفق",
+            101 => "تراکنش قبلا وریفای شده است.",
         ];
 
         $unknownError = 'خطای ناشناخته رخ داده است.';
@@ -232,8 +254,10 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         $response = Http::withHeaders($headers)->post($url, $data);
 
-        if ($response->successful()) {
-            return $response->json();
+        $responseArray = $response->json();
+
+        if (isset($responseArray['data']['code']) || isset($responseArray['errors']['code'])) {
+            return $responseArray;
         }
 
         throw new HttpRequestFailedException($response->body(), $response->status());

@@ -8,14 +8,6 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Novin\Novin::class,
 
     /**
-     *  Headers added to rest api calls
-     */
-    'request_headers' => [
-        'Content-Type' => 'application/json',
-        'Accept' => 'application/json',
-    ],
-
-    /**
      *  Gateway payment page language
      *  Supported values by gateway: fa, en
      */
@@ -24,12 +16,21 @@ return [
     /**
      *  gateway configurations
      */
-    'default' => [
+    'main' => [
         'username' => '',
         'password' => '',
         'certificate_path' => '', // Certificate file path as string
         'certificate_password' => '',
         'temp_files_dir' => '', // Temp text files dir path, example: storage_path('novin/')
+        'callback_url' => 'https://yoursite.com/path/to',
+        'description' => 'payment using eghtesade novin',
+    ],
+    'other' => [
+        'username' => '',
+        'password' => '',
+        'certificate_path' => '',
+        'certificate_password' => '',
+        'temp_files_dir' => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using eghtesade novin',
     ]

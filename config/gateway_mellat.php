@@ -17,7 +17,7 @@ return [
     /**
      *  gateway configurations
      */
-    'default' => [
+    'main' => [
         'terminal_id' => '',
         'username' => '',
         'password' => '',
