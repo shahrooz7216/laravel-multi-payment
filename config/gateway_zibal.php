@@ -8,14 +8,6 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Zibal\Zibal::class,
 
     /**
-     *  rest api call headers
-     */
-    'request_headers' => [
-        'Content-Type' => 'application/json',
-        'Accept' => 'application/json',
-    ],
-
-    /**
      *  gateway configurations
      */
     'main' => [
