@@ -2,7 +2,13 @@
 
 namespace Omalizadeh\MultiPayment;
 
-class RedirectionForm
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+
+class RedirectionForm implements Arrayable
 {
     protected string $method;
     protected array $inputs;
@@ -45,11 +51,11 @@ class RedirectionForm
     }
 
     /**
-     * Returns a json response where form fields are wrapped in data key.
+     * Returns a json response with form info wrapped in data key.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function toJsonResponse(): \Illuminate\Http\JsonResponse
+    public function toJsonResponse(): JsonResponse
     {
         return response()->json([
             'data' => $this->toArray()
@@ -57,17 +63,23 @@ class RedirectionForm
     }
 
     /**
+     * Returns redirection form data as array.
+     *
      * @return array
      */
     public function toArray(): array
     {
-        return $this->getData();
+        return [
+            'action' => $this->getUrl(),
+            'inputs' => $this->getInputs(),
+            'method' => $this->getMethod(),
+        ];
     }
 
     /**
      * Renders a view that redirects to payment gateway automatically.
      *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @return Application|Factory|View
      */
     public function view()
     {
@@ -75,24 +87,12 @@ class RedirectionForm
     }
 
     /**
-     * @deprecated
+     * @return Application|Factory|View
      *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @deprecated
      */
     public function render()
     {
         return view('multipayment::gateway_redirect', $this->toArray());
-    }
-
-    /**
-     * @return array
-     */
-    protected function getData(): array
-    {
-        return [
-            'action' => $this->getUrl(),
-            'inputs' => $this->getInputs(),
-            'method' => $this->getMethod(),
-        ];
     }
 }
