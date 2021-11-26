@@ -116,7 +116,7 @@ class Pasargad extends Driver
             'Action' => static::BANK_BUY_ACTION_CODE,
             'MerchantCode' => $this->settings['merchant_code'],
             'TerminalCode' => $this->settings['terminal_code'],
-            'RedirectAddress' => $this->settings['callback_url'],
+            'RedirectAddress' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'Amount' => $this->getInvoice()->getAmount(),
             'Mobile' => $mobile,
             'Email' => $this->getInvoice()->getEmail(),
