@@ -16,6 +16,7 @@ class Invoice
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
     protected ?string $transactionId = null;
+    protected ?string $callbackUrl = null;
 
     /**
      * @param  float  $amount
@@ -125,6 +126,24 @@ class Invoice
     {
         $this->invoiceId = $invoiceId;
         return $this;
+    }
+
+    /**
+     * @param  string  $callbackUrl
+     * @return $this
+     */
+    public function setCallbackUrl(string $callbackUrl): Self
+    {
+        $this->callbackUrl = $callbackUrl;
+        return $this;
+    }
+
+    /**
+     * @return ?string
+     */
+    public function getCallbackUrl(): ?string
+    {
+        return $this->callbackUrl;
     }
 
     /**
