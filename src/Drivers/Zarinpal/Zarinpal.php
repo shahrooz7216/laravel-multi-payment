@@ -118,7 +118,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         return [
             'merchant_id' => $this->settings['merchant_id'],
             'amount' => $this->getInvoice()->getAmount(),
-            'callback_url' => $this->settings['callback_url'],
+            'callback_url' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'description' => $description,
             'meta_data' => [
                 'mobile' => $mobile,

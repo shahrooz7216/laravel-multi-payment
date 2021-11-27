@@ -101,7 +101,7 @@ class IDPay extends Driver
             'phone' => $mobile,
             'mail' => $email,
             'desc' => $description,
-            'callback' => $this->settings['callback_url']
+            'callback' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url']
         ];
     }
 

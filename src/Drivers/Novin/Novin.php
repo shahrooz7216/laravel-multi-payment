@@ -162,7 +162,7 @@ class Novin extends Driver
             'TransType' => static::BANK_BUY_TRANSACTION_TYPE,
             'ReserveNum' => $this->getInvoice()->getInvoiceId(),
             'Amount' => $this->getInvoice()->getAmount(),
-            'RedirectUrl' => $this->settings['callback_url'],
+            'RedirectUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'MobileNo' => $phoneNumber,
             'Email' => $this->getInvoice()->getEmail(),
             'UserId' => $this->getInvoice()->getUserId(),
