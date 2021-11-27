@@ -2,6 +2,8 @@
 
 namespace Omalizadeh\MultiPayment;
 
+use Exception;
+
 class Receipt
 {
     protected Invoice $invoice;
@@ -30,7 +32,7 @@ class Receipt
 
     /**
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function getInvoiceId(): string
     {
