@@ -4,11 +4,12 @@ namespace Omalizadeh\MultiPayment;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 
-class RedirectionForm implements Arrayable
+class RedirectionForm implements Arrayable, Responsable
 {
     protected string $method;
     protected array $inputs;
@@ -84,6 +85,11 @@ class RedirectionForm implements Arrayable
     public function view()
     {
         return view('multipayment::gateway_redirect', $this->toArray());
+    }
+
+    public function toResponse($request): JsonResponse
+    {
+        return $this->toJsonResponse();
     }
 
     /**
