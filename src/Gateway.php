@@ -4,12 +4,12 @@ namespace Omalizadeh\MultiPayment;
 
 use Closure;
 use Exception;
-use ReflectionClass;
+use Omalizadeh\MultiPayment\Drivers\Contracts\PurchaseInterface;
+use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Drivers\Contracts\PurchaseInterface;
-use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
+use ReflectionClass;
 
 class Gateway
 {
@@ -22,7 +22,7 @@ class Gateway
      * @param  Invoice  $invoice
      * @param  Closure|null  $callback
      * @return RedirectionForm
-     * @throws Exception
+     * @throws DriverNotFoundException
      */
     public function purchase(Invoice $invoice, ?Closure $callback = null): RedirectionForm
     {
@@ -175,7 +175,7 @@ class Gateway
         $reflect = new ReflectionClass($this->getDriver());
 
         if (!$reflect->implementsInterface($interfaceName)) {
-            throw new Exception("Driver does not implement $interfaceName.");
+            throw new DriverNotFoundException("Driver does not implement $interfaceName.");
         }
     }
 }

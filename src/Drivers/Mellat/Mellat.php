@@ -96,7 +96,7 @@ class Mellat extends Driver
             'terminalId' => $this->settings['terminal_id'],
             'userName' => $this->settings['username'],
             'userPassword' => $this->settings['password'],
-            'callBackUrl' => $this->settings['callback_url'],
+            'callBackUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'amount' => $this->getInvoice()->getAmount(),
             'localDate' => now()->format('Ymd'),
             'localTime' => now()->format('Gis'),

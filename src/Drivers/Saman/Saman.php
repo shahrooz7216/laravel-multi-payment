@@ -75,7 +75,7 @@ class Saman extends Driver
             'Action' => 'Token',
             'TerminalId' => $this->settings['terminal_id'],
             'Amount' => $this->getInvoice()->getAmount(),
-            'RedirectUrl' => $this->settings['callback_url'],
+            'RedirectUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'CellNumber' => $cellNumber,
             'ResNum' => $this->getInvoice()->getInvoiceId(),
         ];

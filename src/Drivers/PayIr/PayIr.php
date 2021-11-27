@@ -80,7 +80,7 @@ class PayIr extends Driver
         return [
             'api' => $this->settings['api_key'],
             'amount' => $this->getInvoice()->getAmount(),
-            'redirect' => $this->settings['callback_url'],
+            'redirect' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'mobile' => $mobile,
             'factorNumber' => $this->getInvoice()->getInvoiceId(),
             'description' => $description,

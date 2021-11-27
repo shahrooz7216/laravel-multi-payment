@@ -92,7 +92,7 @@ class Zibal extends Driver
         return [
             'merchant' => $this->settings['merchant'],
             'amount' => $this->getInvoice()->getAmount(),
-            'callbackUrl' => $this->settings['callback_url'],
+            'callbackUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'description' => $description,
             'orderId' => $this->getInvoice()->getInvoiceId(),
             'mobile' => $mobile,

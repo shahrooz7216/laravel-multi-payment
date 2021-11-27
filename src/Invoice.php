@@ -2,6 +2,7 @@
 
 namespace Omalizadeh\MultiPayment;
 
+use Exception;
 use Ramsey\Uuid\Uuid;
 
 class Invoice
@@ -16,6 +17,7 @@ class Invoice
     protected ?string $description = null;
     protected ?string $phoneNumber = null;
     protected ?string $transactionId = null;
+    protected ?string $callbackUrl = null;
 
     /**
      * @param  float  $amount
@@ -35,7 +37,7 @@ class Invoice
      * @param $amount
      * @return $this
      */
-    public function setAmount($amount): Invoice
+    public function setAmount($amount): self
     {
         if (config('multipayment.convert_to_rials')) {
             $this->amount = $amount * 10;
@@ -50,9 +52,10 @@ class Invoice
      * @param  string  $id
      * @return $this
      */
-    public function setTransactionId(string $id): Invoice
+    public function setTransactionId(string $id): self
     {
         $this->transactionId = $id;
+
         return $this;
     }
 
@@ -60,9 +63,10 @@ class Invoice
      * @param  string  $token
      * @return $this
      */
-    public function setToken(string $token): Invoice
+    public function setToken(string $token): self
     {
         $this->token = $token;
+
         return $this;
     }
 
@@ -70,9 +74,10 @@ class Invoice
      * @param  string  $description
      * @return $this
      */
-    public function setDescription(string $description): Invoice
+    public function setDescription(string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -80,9 +85,10 @@ class Invoice
      * @param  string  $phone
      * @return $this
      */
-    public function setPhoneNumber(string $phone): Invoice
+    public function setPhoneNumber(string $phone): self
     {
         $this->phoneNumber = $phone;
+
         return $this;
     }
 
@@ -90,9 +96,10 @@ class Invoice
      * @param  string  $email
      * @return $this
      */
-    public function setEmail(string $email): Invoice
+    public function setEmail(string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -100,7 +107,7 @@ class Invoice
      * @param  string  $name
      * @return $this
      */
-    public function setUserName(string $name): Invoice
+    public function setUserName(string $name): self
     {
         $this->userName = $name;
 
@@ -111,9 +118,10 @@ class Invoice
      * @param  int  $userId
      * @return $this
      */
-    public function setUserId(int $userId): Invoice
+    public function setUserId(int $userId): self
     {
         $this->userId = $userId;
+
         return $this;
     }
 
@@ -121,10 +129,30 @@ class Invoice
      * @param  string  $invoiceId
      * @return $this
      */
-    public function setInvoiceId(string $invoiceId): Invoice
+    public function setInvoiceId(string $invoiceId): self
     {
         $this->invoiceId = $invoiceId;
+
         return $this;
+    }
+
+    /**
+     * @param  string  $callbackUrl
+     * @return $this
+     */
+    public function setCallbackUrl(string $callbackUrl): self
+    {
+        $this->callbackUrl = $callbackUrl;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCallbackUrl(): ?string
+    {
+        return $this->callbackUrl;
     }
 
     /**
@@ -209,7 +237,7 @@ class Invoice
 
     /**
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function getInvoiceId(): string
     {
