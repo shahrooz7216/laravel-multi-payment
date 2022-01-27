@@ -4,16 +4,14 @@ namespace Omalizadeh\MultiPayment\Drivers\Zibal;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
-use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidGatewayResponseDataException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Receipt;
+use Omalizadeh\MultiPayment\RedirectionForm;
 
 class Zibal extends Driver
 {

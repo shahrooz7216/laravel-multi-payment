@@ -5,6 +5,7 @@ namespace Omalizadeh\MultiPayment;
 use Closure;
 use Exception;
 use Omalizadeh\MultiPayment\Drivers\Contracts\PurchaseInterface;
+use Omalizadeh\MultiPayment\Drivers\Contracts\RefundInterface;
 use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 use Omalizadeh\MultiPayment\Exceptions\ConfigurationNotFoundException;
 use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
@@ -19,6 +20,8 @@ class Gateway
     protected PurchaseInterface $driver;
 
     /**
+     * start payment process for given invoice
+     *
      * @param  Invoice  $invoice
      * @param  Closure|null  $callback
      * @return RedirectionForm
@@ -38,6 +41,8 @@ class Gateway
     }
 
     /**
+     * verify payment was successful
+     *
      * @param  Invoice  $invoice
      * @return Receipt
      * @throws Exception
@@ -50,6 +55,8 @@ class Gateway
     }
 
     /**
+     * get a list of unverified payments
+     *
      * @return array
      * @throws Exception
      */
@@ -61,6 +68,20 @@ class Gateway
     }
 
     /**
+     * refund a payment back to user
+     *
+     * @param  Invoice  $invoice
+     * @return array
+     * @throws DriverNotFoundException
+     */
+    public function refund(Invoice $invoice): array
+    {
+        $this->validateDriverInterfaceImplementation(RefundInterface::class);
+
+        return $this->getDriver()->setInvoice($invoice)->refund();
+    }
+
+    /**
      * @param  string  $gateway
      * @return $this
      * @throws InvalidConfigurationException
@@ -68,6 +89,7 @@ class Gateway
     public function setGateway(string $gateway): Gateway
     {
         $gatewayConfig = explode('.', $gateway);
+
         if (count($gatewayConfig) !== 2 || empty($gatewayConfig[0]) || empty($gatewayConfig[1])) {
             throw new InvalidConfigurationException('Invalid gateway. valid gateway pattern: GATEWAY_NAME.GATEWAY_CONFIG_KEY');
         }
@@ -109,15 +131,18 @@ class Gateway
         $this->validateDriver();
 
         $class = config($this->getDriverNamespaceConfigKey());
+
         $this->driver = new $class($this->settings);
     }
 
     private function setSettings(): void
     {
         $settings = config($this->getSettingsConfigKey());
+
         if (empty($settings) || !is_array($settings)) {
             throw new InvalidConfigurationException('Settings for '.$this->getSettingsConfigKey().' not found.');
         }
+
         $this->settings = $settings;
     }
 
@@ -146,6 +171,7 @@ class Gateway
         if (empty($this->driver)) {
             $this->setDefaultGateway();
         }
+
         return $this->driver;
     }
 

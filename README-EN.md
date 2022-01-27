@@ -8,7 +8,7 @@
 This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations.
 Supports laravel **v7.0+** and requires php **v7.4+**
 
-> Star! if you liked the package.
+> Star! if you liked this package.
 
 <div dir="rtl">
 
@@ -142,6 +142,10 @@ After payment gateway redirection to your app, you must create an invoice and se
 #### Unverified Payments
 
 There is also a method (supported by zarinpal) to get a list of successful unverified payments. use `unverifiedPayments` method in `PaymentGateway` facade for this feature.
+
+#### Refund
+
+Using `refund` method, you can refund a successful payment back to customer. Make sure you have authorization token in config file.
 
 [readme-link-fa]: README.md
 
