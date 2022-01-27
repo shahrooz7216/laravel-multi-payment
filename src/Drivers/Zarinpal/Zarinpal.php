@@ -2,20 +2,23 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Zarinpal;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Omalizadeh\MultiPayment\RedirectionForm;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
+use Omalizadeh\MultiPayment\Drivers\Contracts\RefundInterface;
 use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
-use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidGatewayResponseDataException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
+use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
+use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
+use Omalizadeh\MultiPayment\Exceptions\RefundFailedException;
 use Omalizadeh\MultiPayment\Receipt;
+use Omalizadeh\MultiPayment\RedirectionForm;
 
-class Zarinpal extends Driver implements UnverifiedPaymentsInterface
+class Zarinpal extends Driver implements UnverifiedPaymentsInterface, RefundInterface
 {
     public function purchase(): string
     {
@@ -30,6 +33,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         if (empty($response['data']['authority']) || (int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
+
             throw new PurchaseFailedException($message, $response['data']['code']);
         }
 
@@ -54,9 +58,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
     public function verify(): Receipt
     {
-        $status = request('Status');
-
-        if ($status !== 'OK') {
+        if (request('Status') !== 'OK' && !app()->runningUnitTests()) {
             throw new PaymentFailedException('عملیات پرداخت ناموفق بود یا توسط کاربر لغو شد.');
         }
 
@@ -73,9 +75,11 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         if ($responseCode !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($responseCode);
+
             if ($responseCode === $this->getPaymentAlreadyVerifiedStatusCode()) {
                 throw new PaymentAlreadyVerifiedException($message, $responseCode);
             }
+
             throw new PaymentFailedException($message, $responseCode);
         }
 
@@ -90,10 +94,30 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         if ((int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
+
             throw new InvalidGatewayResponseDataException($message, $response['data']['code']);
         }
 
         return $response['data']['authorities'];
+    }
+
+    public function refund(): array
+    {
+        $refundData = $this->getRefundPaymentData();
+
+        $response = $this->callApi(
+            $this->getRefundPaymentsUrl(),
+            Arr::except($refundData, 'authorization_token'),
+            $refundData['authorization_token']
+        );
+
+        if ((int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
+            $message = $this->getStatusMessage($response['data']['code']);
+
+            throw new RefundFailedException($message, $response['data']['code']);
+        }
+
+        return $response['data'];
     }
 
     protected function getPurchaseData(): array
@@ -146,6 +170,27 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
         return [
             'merchant_id' => $this->settings['merchant_id'],
+        ];
+    }
+
+    protected function getRefundPaymentData(): array
+    {
+        if (empty($this->settings['merchant_id'])) {
+            throw new InvalidConfigurationException('Merchant id has not been set.');
+        }
+
+        if (empty($this->settings['authorization_token'])) {
+            throw new InvalidConfigurationException('Authorization token needed for refunding payments.');
+        }
+
+        if (empty($this->getInvoice()->getTransactionId())) {
+            throw new RefundFailedException('Invoice authority (transaction id) has not been set.');
+        }
+
+        return [
+            'authorization_token' => $this->settings['authorization_token'],
+            'merchant_id' => $this->settings['merchant_id'],
+            'authority' => $this->getInvoice()->getTransactionId(),
         ];
     }
 
@@ -232,7 +277,24 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
 
     protected function getUnverifiedPaymentsUrl(): string
     {
+        $mode = $this->getMode();
+
+        if ($mode === 'sandbox') {
+            return 'https://sandbox.zarinpal.com/pg/v4/payment/unVerified.json';
+        }
+
         return 'https://api.zarinpal.com/pg/v4/payment/unVerified.json';
+    }
+
+    protected function getRefundPaymentsUrl(): string
+    {
+        $mode = $this->getMode();
+
+        if ($mode === 'sandbox') {
+            return 'https://sandbox.zarinpal.com/pg/v4/payment/refund.json';
+        }
+
+        return 'https://api.zarinpal.com/pg/v4/payment/refund.json';
     }
 
     private function getMode(): string
@@ -248,11 +310,17 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface
         ]);
     }
 
-    private function callApi(string $url, array $data)
+    private function callApi(string $url, array $data, ?string $authorizationToken = null)
     {
         $headers = $this->getRequestHeaders();
 
-        $response = Http::withHeaders($headers)->post($url, $data);
+        $http = Http::withHeaders($headers);
+
+        if (!is_null($authorizationToken)) {
+            $http = $http->withToken($authorizationToken);
+        }
+
+        $response = $http->post($url, $data);
 
         $responseArray = $response->json();
 
