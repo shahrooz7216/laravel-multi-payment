@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Omalizadeh\MultiPayment\Facades\PaymentGateway;
 use Omalizadeh\MultiPayment\Invoice;
 
-class ZarinpalPaymentTest extends TestCase
+class ZarinpalDriverTest extends TestCase
 {
     public function testInvoiceCanBePurchased(): void
     {
@@ -65,5 +65,30 @@ class ZarinpalPaymentTest extends TestCase
         $response = PaymentGateway::refund($invoice);
 
         $this->assertEquals('IR-XXX-XXXX', $response['iban']);
+    }
+
+    public function testUnverifiedPaymentsList(): void
+    {
+        Http::fake([
+            'https://sandbox.zarinpal.com/pg/v4/payment/unVerified.json' => Http::response([
+                'data' => [
+                    'code' => 100,
+                    'authorities' => [
+                        [
+                            'uthority' => 'A00000000000000000000000000207288780',
+                            'amount' => 50500,
+                            'callback_url' => 'https://test.com/pay',
+                            'referer' => 'https://test.com/form',
+                            'date' => '2020-07-01 17:33:25',
+                        ],
+                    ],
+                ],
+            ])
+        ]);
+
+        $unverifiedPayments = PaymentGateway::unverifiedPayments();
+
+        $this->assertIsArray($unverifiedPayments);
+        $this->assertNotEmpty($unverifiedPayments);
     }
 }
