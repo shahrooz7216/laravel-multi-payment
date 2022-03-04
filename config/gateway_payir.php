@@ -11,7 +11,7 @@ return [
      *  gateway configurations
      */
     'main' => [
-        'api_key' => '', // Use 'test' as api_key for sandbox mode
+        'api_key' => '', // use 'test' as api_key for sandbox mode
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using payir',
     ],

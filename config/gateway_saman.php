@@ -16,12 +16,12 @@ return [
 
     /**
      *  gateway configurations
-     *  merchant_id is the same as terminal_id.
+     *  merchant_id is the same as terminal_id
      */
     'main' => [
         'terminal_id' => '',
         'callback_url' => 'https://yoursite.com/path/to',
-        'callback_method' => 'POST', // Supported values: POST, GET
+        'callback_method' => 'POST', // supported values: POST, GET
         'description' => 'payment using saman',
     ],
     'other' => [

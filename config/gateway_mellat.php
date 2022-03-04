@@ -11,7 +11,7 @@ return [
      *  soap client options
      */
     'soap_options' => [
-        'encoding' => 'UTF-8'
+        'encoding' => 'UTF-8',
     ],
 
     /**

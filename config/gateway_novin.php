@@ -8,8 +8,8 @@ return [
     'driver' => Omalizadeh\MultiPayment\Drivers\Novin\Novin::class,
 
     /**
-     *  Gateway payment page language
-     *  Supported values by gateway: fa, en
+     *  gateway payment page language
+     *  supported values: fa, en
      */
     'language' => 'fa',
 
@@ -19,9 +19,9 @@ return [
     'main' => [
         'username' => '',
         'password' => '',
-        'certificate_path' => '', // Certificate file path as string
+        'certificate_path' => '', // certificate file path as string
         'certificate_password' => '',
-        'temp_files_dir' => '', // Temp text files dir path, example: storage_path('novin/')
+        'temp_files_dir' => '', // temp text files dir path, example: storage_path('novin/')
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using eghtesade novin',
     ],
