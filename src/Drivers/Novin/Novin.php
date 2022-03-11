@@ -2,15 +2,16 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Novin;
 
-use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
-use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
+use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Receipt;
+use Omalizadeh\MultiPayment\RedirectionForm;
 
 class Novin extends Driver
 {
@@ -34,33 +35,40 @@ class Novin extends Driver
         if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
             $dataToSign = $response['DataToSign'];
             $dataUniqueId = $response['UniqueId'];
+
             $signature = $this->getSignature($dataToSign);
+
             $tokenGenerationData = [
                 'WSContext' => $this->getAuthData(),
                 'Signature' => $signature,
                 'UniqueId' => $dataUniqueId
             ];
+
             $response = $this->callApi($this->getTokenGenerationUrl(), $tokenGenerationData);
+
             if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
                 $token = $response['Token'];
                 $this->getInvoice()->setToken($token);
                 return $this->getInvoice()->getInvoiceId();
             }
         }
-        throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
+
+        throw new PurchaseFailedException($this->getStatusMessage($response['Result']), 0, Arr::except($purchaseData, [
+            'WSContext',
+            'TransType',
+        ]));
     }
 
     public function pay(): RedirectionForm
     {
         $payUrl = $this->getPaymentUrl();
 
-        $data = [
-            'Token' => $this->getInvoice()->getToken(),
-            'Language' => $this->getLanguage()
-        ];
-        $payUrl .= ('?token='.$data['Token'].'&language='.$data['Language']);
+        $payUrl .= ('?token='.$this->getInvoice()->getToken().'&language='.$this->getLanguage());
 
-        return $this->redirect($payUrl, $data);
+        return $this->redirect($payUrl, [
+            'Token' => $this->getInvoice()->getToken(),
+            'Language' => $this->getLanguage(),
+        ]);
     }
 
     public function verify(): Receipt
@@ -71,6 +79,7 @@ class Novin extends Driver
 
         $verificationData = $this->getVerificationData();
         $response = $this->callApi($this->getVerificationUrl(), $verificationData);
+
         if ($response['Result'] == $this->getSuccessResponseStatusCode() && $response['Amount'] == $this->getInvoice()->getAmount()) {
             $this->getInvoice()->setTransactionId(request('RefNum'));
             $this->getInvoice()->setInvoiceId(request('ResNum'));
@@ -79,9 +88,10 @@ class Novin extends Driver
                 $this->getInvoice(),
                 request('TraceNo'),
                 request('CustomerRefNum'),
-                request('CardMaskPan')
+                request('CardMaskPan'),
             );
         }
+
         throw new PaymentFailedException($this->getStatusMessage($response['Result']));
     }
 
@@ -99,8 +109,8 @@ class Novin extends Driver
             $this->getUnsignedDataFilePath(),
             $this->getSignedDataFilePath(),
             'file://'.$this->settings['certificate_path'],
-            array('file://'.$this->settings['certificate_path'], $this->settings['certificate_password']),
-            array(),
+            ['file://'.$this->settings['certificate_path'], $this->settings['certificate_password']],
+            [],
             PKCS7_NOSIGS
         );
 
@@ -114,10 +124,13 @@ class Novin extends Driver
     private function callApi(string $url, array $data)
     {
         $headers = $this->getRequestHeaders();
+
         $response = Http::withHeaders($headers)->post($url, $data);
+
         if ($response->successful()) {
             return $response->json();
         }
+
         throw new HttpRequestFailedException($response->body(), $response->status());
     }
 
@@ -126,6 +139,7 @@ class Novin extends Driver
         if (empty($this->settings['username'])) {
             throw new InvalidConfigurationException('Username has not been set.');
         }
+
         if (empty($this->settings['password'])) {
             throw new InvalidConfigurationException('Password has not been set.');
         }
@@ -153,6 +167,7 @@ class Novin extends Driver
     protected function getPurchaseData(): array
     {
         $phoneNumber = $this->getInvoice()->getPhoneNumber();
+
         if (!empty($phoneNumber)) {
             $phoneNumber = $this->checkPhoneNumberFormat($phoneNumber);
         }
@@ -174,7 +189,7 @@ class Novin extends Driver
         return [
             'WSContext' => $this->getAuthData(),
             'Token' => request('token', $this->getInvoice()->getToken()),
-            'RefNum' => request('RefNum', $this->getInvoice()->getTransactionId())
+            'RefNum' => request('RefNum', $this->getInvoice()->getTransactionId()),
         ];
     }
 
@@ -275,6 +290,7 @@ class Novin extends Driver
         if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
+
         if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
             return '0'.$phoneNumber;
         }
@@ -284,11 +300,11 @@ class Novin extends Driver
 
     private function getUnsignedDataFilePath(): string
     {
-        return $this->settings['temp_files_dir'].'unsigned.txt';
+        return rtrim($this->settings['temp_files_dir'], '/').'/unsigned.txt';
     }
 
     private function getSignedDataFilePath(): string
     {
-        return $this->settings['temp_files_dir'].'signed.txt';
+        return rtrim($this->settings['temp_files_dir'], '/').'/signed.txt';
     }
 }
