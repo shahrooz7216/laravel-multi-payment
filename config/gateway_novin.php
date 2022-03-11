@@ -21,7 +21,7 @@ return [
         'password' => '',
         'certificate_path' => '', // certificate file path as string
         'certificate_password' => '',
-        'temp_files_dir' => '', // temp text files dir path, example: storage_path('novin/')
+        'temp_files_dir' => '', // temp text files dir path, example: storage_path('novin')
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using eghtesade novin',
     ],
