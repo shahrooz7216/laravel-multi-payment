@@ -51,9 +51,6 @@ class Parsian extends Driver
 
     protected function getPurchaseData(): array
     {
-        if (empty($this->settings['terminal_id'])) {
-            throw new InvalidConfigurationException('terminal_id has not been set.');
-        }
 
         if (empty($this->settings['pin_code'])) {
             throw new InvalidConfigurationException('pin_code has not been set.');

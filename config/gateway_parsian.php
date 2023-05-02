@@ -17,16 +17,15 @@ return [
     /**
      *  gateway configurations
      */
-    'behandam' => [
-        'terminal_id' => '',
+    'main' => [
         'pin_code' => '',
         'callback_url' => 'https://yoursite.com/path/to',
-        'callback_method' => 'POST', // Supported values: POST, GET
-        'description' => 'رژیم دکتر کرمانی',
+        'callback_method' => 'POST',
+        'description' => '',
     ],
 
     'other' => [
-        'merchant'  => '',
+        'pin_code'  => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using parsian',
     ]
