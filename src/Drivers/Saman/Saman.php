@@ -73,7 +73,7 @@ class Saman extends Driver
 
         $cellNumber = $this->getInvoice()->getPhoneNumber();
 
-        if (!empty($cellNumber)) {
+        if (! empty($cellNumber)) {
             $cellNumber = $this->checkPhoneNumberFormat($cellNumber);
         }
 
@@ -91,7 +91,7 @@ class Saman extends Driver
     {
         return [
             'RefNum' => request('RefNum', $this->getInvoice()->getTransactionId()),
-            'MerchantID' => $this->settings['terminal_id']
+            'MerchantID' => $this->settings['terminal_id'],
         ];
     }
 
@@ -157,8 +157,9 @@ class Saman extends Driver
     private function getCallbackMethod()
     {
         if (isset($this->settings['callback_method']) && strtoupper($this->settings['callback_method']) === 'GET') {
-            return "true";
+            return 'true';
         }
+
         return null;
     }
 
@@ -188,6 +189,7 @@ class Saman extends Driver
         if (strlen($phoneNumber) === 10) {
             return '98'.$phoneNumber;
         }
+
         return $phoneNumber;
     }
 }

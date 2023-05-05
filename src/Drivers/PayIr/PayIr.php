@@ -20,6 +20,7 @@ class PayIr extends Driver
 
         if ($response['status'] !== $this->getSuccessResponseStatusCode()) {
             $message = $response['errorMessage'] ?? $this->getStatusMessage($response['errorCode']);
+
             throw new PurchaseFailedException($message, $response['errorCode']);
         }
 
@@ -50,6 +51,7 @@ class PayIr extends Driver
 
         if ($response['status'] !== $this->getSuccessResponseStatusCode()) {
             $message = $response['errorMessage'] ?? $this->getStatusMessage($response['errorCode']);
+
             throw new PaymentFailedException($message, $response['errorCode']);
         }
 
@@ -59,7 +61,7 @@ class PayIr extends Driver
             $this->getInvoice(),
             $response['transId'],
             null,
-            $response['cardNumber']
+            $response['cardNumber'],
         );
     }
 
@@ -73,7 +75,7 @@ class PayIr extends Driver
 
         $mobile = $this->getInvoice()->getPhoneNumber();
 
-        if (!empty($mobile)) {
+        if (! empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
 

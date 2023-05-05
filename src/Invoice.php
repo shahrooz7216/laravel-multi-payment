@@ -28,7 +28,7 @@ class Invoice
         $this->setAmount($amount);
         $this->uuid = Uuid::uuid4()->toString();
 
-        if (!empty($transactionId)) {
+        if (! empty($transactionId)) {
             $this->setTransactionId($transactionId);
         }
     }
@@ -256,7 +256,7 @@ class Invoice
         return [
             'user_id' => $this->getUserId(),
             'phone' => $this->getPhoneNumber(),
-            'email' => $this->getEmail()
+            'email' => $this->getEmail(),
         ];
     }
 }

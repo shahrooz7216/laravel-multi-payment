@@ -3,12 +3,12 @@
 return [
 
     /**
-     *  driver class namespace
+     *  driver class namespace.
      */
     'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal\Zarinpal::class,
 
     /**
-     *  gateway configurations
+     *  gateway configurations.
      */
     'main' => [
         'authorization_token' => '', // optional, used only to refund payments (can be created from zarinpal panel)
@@ -23,5 +23,5 @@ return [
         'callback_url' => 'https://yoursite.com/path/to',
         'mode' => 'normal',
         'description' => 'payment using zarinpal',
-    ]
+    ],
 ];

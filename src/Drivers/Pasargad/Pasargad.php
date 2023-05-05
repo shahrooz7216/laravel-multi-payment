@@ -41,7 +41,7 @@ class Pasargad extends Driver
         $payUrl = $this->getPaymentUrl();
 
         $data = [
-            'Token' => $this->getInvoice()->getToken()
+            'Token' => $this->getInvoice()->getToken(),
         ];
 
         return $this->redirect($payUrl, $data);
@@ -80,7 +80,7 @@ class Pasargad extends Driver
                     $this->getInvoice(),
                     $checkTransactionResult['TraceNumber'],
                     $checkTransactionResult['ReferenceNumber'],
-                    $verificationResult['MaskedCardNumber']
+                    $verificationResult['MaskedCardNumber'],
                 );
             }
         }
@@ -94,7 +94,7 @@ class Pasargad extends Driver
         $sign = $this->signData($body);
         $headers = $this->getRequestHeaders();
         $headers = array_merge($headers, [
-            'Sign' => $sign
+            'Sign' => $sign,
         ]);
 
         return Http::withHeaders($headers)->post($url, $data);
@@ -123,7 +123,7 @@ class Pasargad extends Driver
 
         $mobile = $this->getInvoice()->getPhoneNumber();
 
-        if (!empty($mobile)) {
+        if (! empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
 
@@ -162,7 +162,7 @@ class Pasargad extends Driver
 
     protected function getStatusMessage($statusCode): string
     {
-        return "خطا در تبادل اطلاعات با درگاه";
+        return 'خطا در تبادل اطلاعات با درگاه';
     }
 
     protected function getSuccessResponseStatusCode()
@@ -172,22 +172,22 @@ class Pasargad extends Driver
 
     protected function getPurchaseUrl(): string
     {
-        return "https://pep.shaparak.ir/Api/v1/Payment/GetToken";
+        return 'https://pep.shaparak.ir/Api/v1/Payment/GetToken';
     }
 
     protected function getPaymentUrl(): string
     {
-        return "https://pep.shaparak.ir/payment.aspx";
+        return 'https://pep.shaparak.ir/payment.aspx';
     }
 
     protected function getVerificationUrl(): string
     {
-        return "https://pep.shaparak.ir/Api/v1/Payment/VerifyPayment";
+        return 'https://pep.shaparak.ir/Api/v1/Payment/VerifyPayment';
     }
 
     private function getCheckTransactionUrl(): string
     {
-        return "https://pep.shaparak.ir/Api/v1/Payment/CheckTransactionResult";
+        return 'https://pep.shaparak.ir/Api/v1/Payment/CheckTransactionResult';
     }
 
     private function getRequestHeaders(): array

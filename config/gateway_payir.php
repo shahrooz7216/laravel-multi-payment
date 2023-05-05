@@ -3,12 +3,12 @@
 return [
 
     /**
-     *  driver class namespace
+     *  driver class namespace.
      */
     'driver' => Omalizadeh\MultiPayment\Drivers\PayIr\PayIr::class,
 
     /**
-     *  gateway configurations
+     *  gateway configurations.
      */
     'main' => [
         'api_key' => '', // use 'test' as api_key for sandbox mode
@@ -19,5 +19,5 @@ return [
         'api_key' => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using payir',
-    ]
+    ],
 ];

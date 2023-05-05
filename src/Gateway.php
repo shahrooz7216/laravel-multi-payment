@@ -20,7 +20,7 @@ class Gateway
     protected PurchaseInterface $driver;
 
     /**
-     * start payment process for given invoice
+     * start payment process for given invoice.
      *
      * @param  Invoice  $invoice
      * @param  Closure|null  $callback
@@ -41,7 +41,7 @@ class Gateway
     }
 
     /**
-     * verify payment was successful
+     * verify payment was successful.
      *
      * @param  Invoice  $invoice
      * @return Receipt
@@ -55,7 +55,7 @@ class Gateway
     }
 
     /**
-     * get a list of unverified payments
+     * get a list of unverified payments.
      *
      * @return array
      * @throws Exception
@@ -68,7 +68,7 @@ class Gateway
     }
 
     /**
-     * refund a payment back to user
+     * refund a payment back to user.
      *
      * @param  Invoice  $invoice
      * @return array
@@ -139,7 +139,7 @@ class Gateway
     {
         $settings = config($this->getSettingsConfigKey());
 
-        if (empty($settings) || !is_array($settings)) {
+        if (empty($settings) || ! is_array($settings)) {
             throw new InvalidConfigurationException('Settings for '.$this->getSettingsConfigKey().' not found.');
         }
 
@@ -194,7 +194,7 @@ class Gateway
             throw new DriverNotFoundException('Gateway driver settings not found in config file.');
         }
 
-        if (!class_exists(config($this->getDriverNamespaceConfigKey()))) {
+        if (! class_exists(config($this->getDriverNamespaceConfigKey()))) {
             throw new DriverNotFoundException('Gateway driver class not found. Check driver aliases or try updating the package');
         }
     }
@@ -203,7 +203,7 @@ class Gateway
     {
         $reflect = new ReflectionClass($this->getDriver());
 
-        if (!$reflect->implementsInterface($interfaceName)) {
+        if (! $reflect->implementsInterface($interfaceName)) {
             throw new DriverNotFoundException("Driver does not implement $interfaceName.");
         }
     }

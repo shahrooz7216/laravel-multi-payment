@@ -16,9 +16,9 @@ class ZarinpalDriverTest extends TestCase
             'https://sandbox.zarinpal.com/pg/v4/payment/request.json' => Http::response([
                 'data' => [
                     'code' => 100,
-                    'authority' => 'testing-authority'
-                ]
-            ])
+                    'authority' => 'testing-authority',
+                ],
+            ]),
         ]);
 
         $redirect = PaymentGateway::purchase($invoice)->toArray();
@@ -35,8 +35,8 @@ class ZarinpalDriverTest extends TestCase
                     'code' => 100,
                     'card_pan' => '66-****-99',
                     'ref_id' => '111111',
-                ]
-            ])
+                ],
+            ]),
         ]);
 
         $invoice = new Invoice(1200, 'testing-transaction');
@@ -56,8 +56,8 @@ class ZarinpalDriverTest extends TestCase
                     'iban' => 'IR-XXX-XXXX',
                     'ref_id' => 456666,
                     'session' => 4654552213,
-                ]
-            ])
+                ],
+            ]),
         ]);
 
         $invoice = new Invoice(1200, 'testing-transaction');
@@ -83,7 +83,7 @@ class ZarinpalDriverTest extends TestCase
                         ],
                     ],
                 ],
-            ])
+            ]),
         ]);
 
         $unverifiedPayments = PaymentGateway::unverifiedPayments();

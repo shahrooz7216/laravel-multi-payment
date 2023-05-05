@@ -3,19 +3,19 @@
 return [
 
     /**
-     *  driver class namespace
+     *  driver class namespace.
      */
     'driver' => Omalizadeh\MultiPayment\Drivers\Parsian\Parsian::class,
 
     /**
-     *  soap client options
+     *  soap client options.
      */
     'soap_options' => [
         'encoding' => 'UTF-8',
     ],
 
     /**
-     *  gateway configurations
+     *  gateway configurations.
      */
     'main' => [
         'pin_code' => '',

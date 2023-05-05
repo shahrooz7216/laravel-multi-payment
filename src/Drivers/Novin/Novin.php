@@ -41,7 +41,7 @@ class Novin extends Driver
             $tokenGenerationData = [
                 'WSContext' => $this->getAuthData(),
                 'Signature' => $signature,
-                'UniqueId' => $dataUniqueId
+                'UniqueId' => $dataUniqueId,
             ];
 
             $response = $this->callApi($this->getTokenGenerationUrl(), $tokenGenerationData);
@@ -49,6 +49,7 @@ class Novin extends Driver
             if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
                 $token = $response['Token'];
                 $this->getInvoice()->setToken($token);
+
                 return $this->getInvoice()->getInvoiceId();
             }
         }
@@ -73,7 +74,7 @@ class Novin extends Driver
 
     public function verify(): Receipt
     {
-        if (!empty(request('State')) && strtoupper(request('State')) !== 'OK') {
+        if (! empty(request('State')) && strtoupper(request('State')) !== 'OK') {
             throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
 
@@ -97,12 +98,12 @@ class Novin extends Driver
 
     private function getSignature(string $dataToSign): string
     {
-        $unsignedFile = fopen($this->getUnsignedDataFilePath(), "w");
+        $unsignedFile = fopen($this->getUnsignedDataFilePath(), 'w');
         fwrite($unsignedFile, $dataToSign);
         fclose($unsignedFile);
 
-        $signedFile = fopen($this->getSignedDataFilePath(), "w");
-        fwrite($signedFile, "");
+        $signedFile = fopen($this->getSignedDataFilePath(), 'w');
+        fwrite($signedFile, '');
         fclose($signedFile);
 
         openssl_pkcs7_sign(
@@ -111,7 +112,7 @@ class Novin extends Driver
             'file://'.$this->settings['certificate_path'],
             ['file://'.$this->settings['certificate_path'], $this->settings['certificate_password']],
             [],
-            PKCS7_NOSIGS
+            PKCS7_NOSIGS,
         );
 
         $sigendData = file_get_contents($this->getSignedDataFilePath());
@@ -146,13 +147,13 @@ class Novin extends Driver
 
         return [
             'UserName' => $this->settings['username'],
-            'Password' => $this->settings['password']
+            'Password' => $this->settings['password'],
         ];
     }
 
     private function getAuthData(): array
     {
-        if (!empty($this->sessionId)) {
+        if (! empty($this->sessionId)) {
             return [
                 'SessionId' => $this->sessionId,
             ];
@@ -168,7 +169,7 @@ class Novin extends Driver
     {
         $phoneNumber = $this->getInvoice()->getPhoneNumber();
 
-        if (!empty($phoneNumber)) {
+        if (! empty($phoneNumber)) {
             $phoneNumber = $this->checkPhoneNumberFormat($phoneNumber);
         }
 

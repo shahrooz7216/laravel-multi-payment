@@ -3,12 +3,12 @@
 return [
 
     /**
-     *  driver class namespace
+     *  driver class namespace.
      */
     'driver' => Omalizadeh\MultiPayment\Drivers\IDPay\IDPay::class,
 
     /**
-     *  gateway configurations
+     *  gateway configurations.
      */
     'main' => [
         'api_key' => '',
@@ -21,5 +21,5 @@ return [
         'sandbox' => true,
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using idpay',
-    ]
+    ],
 ];

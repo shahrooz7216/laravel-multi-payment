@@ -25,7 +25,7 @@ class Parsian extends Driver
 
         throw new PurchaseFailedException(
             $this->getStatusMessage($response->SalePaymentRequestResult->Status),
-            $response->SalePaymentRequestResult->Status
+            $response->SalePaymentRequestResult->Status,
         );
     }
 
@@ -38,7 +38,7 @@ class Parsian extends Driver
 
     public function verify(): Receipt
     {
-        if (!empty(request('status')) && request('status') !== $this->getSuccessResponseStatusCode()) {
+        if (! empty(request('status')) && request('status') !== $this->getSuccessResponseStatusCode()) {
             throw new PaymentFailedException($this->getStatusMessage(request('status')), request('status'));
         }
 
@@ -54,7 +54,7 @@ class Parsian extends Driver
 
         throw new PaymentFailedException(
             $this->getStatusMessage($verificationResponse->ConfirmPaymentResult->Status),
-            $verificationResponse->ConfirmPaymentResult->Status
+            $verificationResponse->ConfirmPaymentResult->Status,
         );
     }
 
@@ -382,7 +382,7 @@ class Parsian extends Driver
             '96' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻜﺮﺩ ﺳﻴﺴﺘﻢ ',
             '97' => 'ﺗﺮﺍﻛﻨﺶ ﺍﺯ ﺳﻮﻱ ﺻﺎﺩﺭﻛﻨﻨﺪﻩ ﻛﺎﺭﺕ ﺭﺩ ﺷﺪﻩ ﺍﺳﺖ ',
             '99' => 'ﺧﻄﺎﻱ ﺻﺎﺩﺭ ﻛﻨﻨﺪﮔﻲ 	',
-            '200' => 'ﺳﺎﻳﺮ ﺧﻄﺎﻫﺎﻱ ﻧﮕﺎﺷﺖ ﻧﺸﺪﻩ ﺳﺎﻣﺎﻧﻪ ﻫﺎﻱ ﺑﺎﻧﻜﻲ'
+            '200' => 'ﺳﺎﻳﺮ ﺧﻄﺎﻫﺎﻱ ﻧﮕﺎﺷﺖ ﻧﺸﺪﻩ ﺳﺎﻣﺎﻧﻪ ﻫﺎﻱ ﺑﺎﻧﻜﻲ',
         ];
 
         return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $statusCode;
@@ -416,7 +416,7 @@ class Parsian extends Driver
     private function getSoapOptions(): array
     {
         return config('gateway_parsian.soap_options', [
-            'encoding' => 'UTF-8'
+            'encoding' => 'UTF-8',
         ]);
     }
 }

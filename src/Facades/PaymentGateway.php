@@ -19,7 +19,6 @@ use Omalizadeh\MultiPayment\RedirectionForm;
  * @method static string getGatewayConfigKey()
  *
  * @see Gateway
- *
  */
 class PaymentGateway extends Facade
 {

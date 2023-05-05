@@ -72,7 +72,7 @@ class Zibal extends Driver
             $this->getInvoice(),
             $refNum,
             $refNum,
-            $response['cardNumber']
+            $response['cardNumber'],
         );
     }
 
@@ -86,7 +86,7 @@ class Zibal extends Driver
 
         $mobile = $this->getInvoice()->getPhoneNumber();
 
-        if (!empty($mobile)) {
+        if (! empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
 

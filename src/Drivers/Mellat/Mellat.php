@@ -36,7 +36,7 @@ class Mellat extends Driver
     {
         $mobileNo = $this->getInvoice()->getPhoneNumber();
 
-        if (!empty($mobileNo)) {
+        if (! empty($mobileNo)) {
             $mobileNo = $this->checkPhoneNumberFormat($mobileNo);
         }
 
@@ -64,6 +64,7 @@ class Mellat extends Driver
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
             if ($responseCode != $this->getPaymentAlreadyVerifiedStatusCode()) {
                 $soap->bpReversalRequest($data);
+
                 throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
             }
 
@@ -97,13 +98,13 @@ class Mellat extends Driver
             throw new InvalidConfigurationException('Username or password has not been set.');
         }
 
-        if (!empty($this->getInvoice()->getDescription())) {
+        if (! empty($this->getInvoice()->getDescription())) {
             $description = $this->getInvoice()->getDescription();
         } else {
             $description = $this->settings['description'];
         }
 
-        return array(
+        return [
             'terminalId' => $this->settings['terminal_id'],
             'userName' => $this->settings['username'],
             'userPassword' => $this->settings['password'],
@@ -113,8 +114,8 @@ class Mellat extends Driver
             'localTime' => now()->format('Gis'),
             'orderId' => (int) $this->getInvoice()->getInvoiceId(),
             'additionalData' => $description,
-            'payerId' => $this->getInvoice()->getUserId()
-        );
+            'payerId' => $this->getInvoice()->getUserId(),
+        ];
     }
 
     protected function getVerificationData(): array
@@ -181,7 +182,7 @@ class Mellat extends Driver
             '55' => 'تراکنش نامعتبر است',
             '61' => 'خطا در واریز',
             '62' => 'مسیر بازگشت به سایت در دامنه ثبت شده برای پذیرنده قرار ندارد',
-            '98' => 'سقف استفاده از رمز ایستا به پایان رسیده است'
+            '98' => 'سقف استفاده از رمز ایستا به پایان رسیده است',
         ];
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
@@ -190,22 +191,22 @@ class Mellat extends Driver
 
     protected function getSuccessResponseStatusCode(): string
     {
-        return "0";
+        return '0';
     }
 
     private function getPaymentAlreadyVerifiedStatusCode(): string
     {
-        return "43";
+        return '43';
     }
 
     private function getPaymentAlreadySettledStatusCode(): string
     {
-        return "45";
+        return '45';
     }
 
     private function getPaymentAlreadyReversedStatusCode(): string
     {
-        return "48";
+        return '48';
     }
 
     protected function getPurchaseUrl(): string
