@@ -20,15 +20,19 @@ class Pasargad extends Driver
     {
         $data = $this->getPurchaseData();
         $response = $this->callApi($this->getPurchaseUrl(), $data);
+
         if ($response->successful()) {
             $result = $response->json();
+
             if ($result['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($result['Message'], $response->status());
             }
+
             $this->getInvoice()->setToken($result['Token']);
 
             return $data['InvoiceNumber'];
         }
+
         throw new PurchaseFailedException($response->body(), $response->status());
     }
 
@@ -47,22 +51,29 @@ class Pasargad extends Driver
     {
         $checkTransactionData = $this->getCheckTransactionData();
         $response = $this->callApi($this->getCheckTransactionUrl(), $checkTransactionData);
+
         if ($response->successful()) {
             $checkTransactionResult = $response->json();
+
             if ($checkTransactionResult['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
                 throw new PaymentFailedException($checkTransactionResult['Message'], $response->status());
             }
+
             $verificationData = array_merge($this->getVerificationData(), [
                 'InvoiceNumber' => $checkTransactionResult['InvoiceNumber'],
                 'InvoiceDate' => $checkTransactionResult['InvoiceDate'],
                 'Amount' => $checkTransactionResult['Amount'],
             ]);
+
             $response = $this->callApi($this->getVerificationUrl(), $verificationData);
+
             if ($response->successful()) {
                 $verificationResult = $response->json();
+
                 if ($verificationResult['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
                     throw new PaymentFailedException($verificationResult['Message'], $response->status());
                 }
+
                 $this->getInvoice()->setTransactionId($checkTransactionResult['TransactionReferenceID']);
 
                 return new Receipt(
@@ -73,6 +84,7 @@ class Pasargad extends Driver
                 );
             }
         }
+
         throw new PaymentFailedException($response->body(), $response->status());
     }
 
@@ -104,10 +116,13 @@ class Pasargad extends Driver
         if (empty($this->settings['merchant_code'])) {
             throw new InvalidConfigurationException('Merchant code has not been set.');
         }
+
         if (empty($this->settings['terminal_code'])) {
             throw new InvalidConfigurationException('Terminal code has not been set.');
         }
+
         $mobile = $this->getInvoice()->getPhoneNumber();
+
         if (!empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
@@ -177,10 +192,10 @@ class Pasargad extends Driver
 
     private function getRequestHeaders(): array
     {
-        return config('gateway_pasargad.request_headers', [
+        return [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ]);
+        ];
     }
 
     private function checkPhoneNumberFormat(string $phoneNumber): string
@@ -188,9 +203,11 @@ class Pasargad extends Driver
         if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '', $phoneNumber);
         }
+
         if (strlen($phoneNumber) === 11 && Str::startsWith($phoneNumber, '0')) {
             return Str::replaceFirst('0', '', $phoneNumber);
         }
+
         return $phoneNumber;
     }
 }

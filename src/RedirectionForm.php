@@ -59,7 +59,7 @@ class RedirectionForm implements Arrayable, Responsable
     public function toJsonResponse(): JsonResponse
     {
         return response()->json([
-            'data' => $this->toArray()
+            'data' => $this->toArray(),
         ]);
     }
 

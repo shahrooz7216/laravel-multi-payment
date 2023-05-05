@@ -2,33 +2,37 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Parsian;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
+use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
 use Omalizadeh\MultiPayment\Receipt;
 use Omalizadeh\MultiPayment\RedirectionForm;
 use SoapClient;
 
 class Parsian extends Driver
 {
-
     public function purchase(): string
     {
-        $soapOptions = $this->getSoapOptions();
-        $soap = new SoapClient($this->getPurchaseUrl(), $soapOptions);
+        $soap = new SoapClient($this->getPurchaseUrl(), $this->getSoapOptions());
         $response = $soap->SalePaymentRequest($this->getPurchaseData());
-        if($response->SalePaymentRequestResult && $response->SalePaymentRequestResult->Status === $this->getSuccessResponseStatusCode()){
+
+        if ($response->SalePaymentRequestResult && $response->SalePaymentRequestResult->Status === $this->getSuccessResponseStatusCode()) {
             $this->getInvoice()->setTransactionId($response->SalePaymentRequestResult->Token);
-            return  $response->SalePaymentRequestResult->Token;
+
+            return $response->SalePaymentRequestResult->Token;
         }
-        throw new PaymentFailedException($this->getStatusMessage($response->SalePaymentRequestResult->Status));
+
+        throw new PurchaseFailedException(
+            $this->getStatusMessage($response->SalePaymentRequestResult->Status),
+            $response->SalePaymentRequestResult->Status
+        );
     }
 
     public function pay(): RedirectionForm
     {
         $paymentUrl = $this->getPaymentUrl();
+
         return $this->redirect($paymentUrl);
     }
 
@@ -37,21 +41,25 @@ class Parsian extends Driver
         if (!empty(request('status')) && request('status') !== $this->getSuccessResponseStatusCode()) {
             throw new PaymentFailedException($this->getStatusMessage(request('status')), request('status'));
         }
-        $soapOptions = $this->getSoapOptions();
-        $data = $this->getVerificationData();
-        $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
-        $verificationResponse = $soap->ConfirmPayment($data);
-        $RRN=$verificationResponse->ConfirmPaymentResult->RRN;
-        $token=$verificationResponse->ConfirmPaymentResult->Token;
-        $cardNumber=$verificationResponse->ConfirmPaymentResult->CardNumberMasked;
+
+        $soap = new SoapClient($this->getVerificationUrl(), $this->getSoapOptions());
+        $verificationResponse = $soap->ConfirmPayment($this->getVerificationData());
+        $RRN = $verificationResponse->ConfirmPaymentResult->RRN;
+        $token = $verificationResponse->ConfirmPaymentResult->Token;
+        $cardNumber = $verificationResponse->ConfirmPaymentResult->CardNumberMasked;
+
         if ($verificationResponse->ConfirmPaymentResult->Status === $this->getSuccessResponseStatusCode() && $RRN > 0) {
             return new Receipt($this->getInvoice(), $RRN, $token, $cardNumber);
         }
+
+        throw new PaymentFailedException(
+            $this->getStatusMessage($verificationResponse->ConfirmPaymentResult->Status),
+            $verificationResponse->ConfirmPaymentResult->Status
+        );
     }
 
     protected function getPurchaseData(): array
     {
-
         if (empty($this->settings['pin_code'])) {
             throw new InvalidConfigurationException('pin_code has not been set.');
         }
@@ -61,9 +69,10 @@ class Parsian extends Driver
                 'LoginAccount' => $this->settings['pin_code'],
                 'OrderId' => $this->getInvoice()->getInvoiceId(),
                 'Amount' => $this->getInvoice()->getAmount(),
-                'CallBackUrl' => $this->settings['callback_url'],
-                'Originator' => $this->getInvoice()->getPhoneNumber()
-            ]
+                'CallBackUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
+                'AdditionalData' => $this->getInvoice()->getDescription(),
+                'Originator' => $this->getInvoice()->getPhoneNumber(),
+            ],
         ];
     }
 
@@ -73,21 +82,21 @@ class Parsian extends Driver
             'requestData' => [
                 'LoginAccount' => $this->settings['pin_code'],
                 'Token' => $this->getInvoice()->getTransactionId(),
-            ]
+            ],
         ];
     }
 
     protected function getStatusMessage($statusCode): string
     {
         $messages = [
-            '-32768' => 'ﺧﻄﺎﻱ ﻧﺎﺷﻨﺎﺧﺘﻪ ﺭﺥ ﺩﺍﺩﻩ ﺍﺳﺖ ',
-            '-32004 ' => 'ﺧﻄﺎ ﺩﺭ ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﺩﺭﺧﻮﺍﺳﺖ ﺧﺮﻳﺪ ﺗﺴﻬﻴﻢ ﺁﻓﻼﻳﻦ ',
-            '-32003' => 'ﻣﺒﻠﻎ ﻛﻞ ﺑﺎ ﺟﻤﻊ ﻣﺒﺎﻟﻎ ﺗﺴﻬﻴﻢ ﺷﺪﻩ ﺑﺮﺍﺑﺮ ﻧﻤﻲ ﺑﺎﺷﺪ ',
-            '-32002' => 'ﻣﺒﻠﻎ ﺩﺭ ﻳﻚ ﻳﺎ ﭼﻨﺪ ﺁﻳﺘﻢ ﺩﺍﺩﻩ ﺷﺪﻩ ﻣﻌﺘﺒﺮ ﻧﻤﻲ ﺑﺎﺷﺪ ',
+            '-32768' => 'ﺧﻄﺎﻱ ﻧﺎﺷﻨﺎﺧﺘﻪ ﺭﺥ ﺩﺍﺩﻩ ﺍﺳﺖ',
+            '-32004 ' => 'ﺧﻄﺎ ﺩﺭ ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﺩﺭﺧﻮﺍﺳﺖ ﺧﺮﻳﺪ ﺗﺴﻬﻴﻢ ﺁﻓﻼﻳﻦ',
+            '-32003' => 'ﻣﺒﻠﻎ ﻛﻞ ﺑﺎ ﺟﻤﻊ ﻣﺒﺎﻟﻎ ﺗﺴﻬﻴﻢ ﺷﺪﻩ ﺑﺮﺍﺑﺮ ﻧﻤﻲ ﺑﺎﺷﺪ',
+            '-32002' => 'ﻣﺒﻠﻎ ﺩﺭ ﻳﻚ ﻳﺎ ﭼﻨﺪ ﺁﻳﺘﻢ ﺩﺍﺩﻩ ﺷﺪﻩ ﻣﻌﺘﺒﺮ ﻧﻤﻲ ﺑﺎﺷﺪ',
             '-32001' => 'ﻟﻴﺴﺖ ﺷﻤﺎﺭﻩ ﺷﺒﺎﻫﺎ ﺧﺎﻟﻲ ﺍﺳﺖ',
-            '-32000'=>'ﺧﻄﺎ ﺩﺭ ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﻛﻨﺘﺮﻝ ﺷﺒﺎﻱ ﺫﻳﻨﻔﻌﺎﻥ ﺗﺴﻬﻴﻢ ﺁﻓﻼﻳﻦ ',
-            '-20000' => 'ﺑﺮﺧﻲ ﺍﺯ ﺷﺒﺎﻫﺎ ﻣﻌﺘﺒﺮ ﻧﻤﻲ ﺑﺎﺷﺪ ',
-            '-1638' => 'ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﺩﺭﺧﻮﺍﺳﺖ ﺷﺎﺭﮊ ﺗﺎﭖ ﺁﭖ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ ',
+            '-32000' => 'ﺧﻄﺎ ﺩﺭ ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﻛﻨﺘﺮﻝ ﺷﺒﺎﻱ ﺫﻳﻨﻔﻌﺎﻥ ﺗﺴﻬﻴﻢ ﺁﻓﻼﻳﻦ',
+            '-20000' => 'ﺑﺮﺧﻲ ﺍﺯ ﺷﺒﺎﻫﺎ ﻣﻌﺘﺒﺮ ﻧﻤﻲ ﺑﺎﺷﺪ',
+            '-1638' => 'ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﺩﺭﺧﻮﺍﺳﺖ ﺷﺎﺭﮊ ﺗﺎﭖ ﺁﭖ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ',
             '-1637' => 'Single-Phased UD Payment SW2 exception ',
             '-1636' => 'Single-Phased USSD Topup Charge Payment Exception ',
             '-1635' => 'Single-Phased USSD Sale Payment Exception ',
@@ -104,35 +113,35 @@ class Parsian extends Driver
             '-1624' => 'ﺷﺎﺭﮊ ﻛﺎﺭﺕ ﻧﺎﻣﻮﻓﻖ ﻣﻲ ﺑﺎﺷﺪ',
             '-1623' => 'ﺍﺳﺘﺜﻨﺎﻱ ﻓﺮﺍﺧﻮﺍﻧﻲ ﺳﺮﻭﻳﺲ ﺻﺎﺩﺭﻛﻨﻨﺪﻩ',
             '-1622' => 'ﺍﺳﺘﺜﻨﺎ ﺩﺭ ﻛﻨﺘﺮﻝ ﻣﺤﺪﻭﺩﻳﺖ ﭘﺬﻳﺮﻧﺪﻩ ﺑﺮﺍﻱ ﺷﻤﺎﺭﻩ ﻛﺎﺭﺕ',
-            '-1621'=>'ﺍﻧﺠﺎﻡ ﺗﺮﺍﻛﻨﺶ ﻣﺤﺪﻭﺩ ﺑﻪ ﻛﺎﺭﺕ ﻫﺎﻱ ﭘﺬﻳﺮﻧﺪﻩ ﻣﻲ ﺑﺎﺷﺪ ',
-            '-1620' => 'ﺗﺎﭖ ﺁﭖ ﺩﺭ ﺩﺭﮔﺎﻩ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ. ﺟﻬﺖ ﺭﻓﻊ ﻣﻐﺎﻳﺮﺕ ﺑﺎ ﻣﺮﻛﺰ ﺗﻤﺎﺱ ﺑﻪ ﺷﻤﺎﺭﻩ 2318-021 ﺗﻤﺎﺱ ﺑﮕﻴﺮﻳﺪ ',
-            '-1619' => 'ﺗﺎﭖ ﺁﭖ ﺩﺭ ﻭﺍﺳﻂ ﺳﺮﻭﻳﺲ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ. ﺟﻬﺖ ﺭﻓﻊ ﻣﻐﺎﻳﺮﺕ ﺑﺎ ﻣﺮﻛﺰ ﺗﻤﺎﺱ ﺑﻪ ﺷﻤﺎﺭﻩ 2318-021 ﺗﻤﺎﺱ ﺑﮕﻴﺮﻳﺪ ',
-            '-1618' => 'ﺗﺎﭖ ﺁﭖ ﺗﻮﺳﻂ ﺗﺎﻣﻴﻦ ﻛﻨﻨﺪﻩ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ. ﺟﻬﺖ ﺭﻓﻊ ﻣﻐﺎﻳﺮﺕ ﺑﺎ ﻣﺮﻛﺰ ﺗﻤﺎﺱ ﺑﻪ ﺷﻤﺎﺭﻩ 2318-021 ﺗﻤﺎﺱ ﺑﮕﻴﺮﻳﺪ ',
-            '-1617' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﺷﺎﺭﮊ ﺗﺎﭘﺂﭖ. ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ ',
-            '-1616' => 'ﺧﻄﺎ ﺩﺭ ﭘﺮﺩﺍﺯﺵ ﺗﺮﺍﻛﻨﺶ ﭘﺮﺩﺍﺧﺖ ﺑﺎ ﻛﺪ QR ',
-            '-1615' => 'ﺍﺳﺘﺜﻨﺎﻱ ﻧﺎﺷﻨﺎﺧﺘﻪ ﺩﺭ ﭘﺮﺩﺍﺧﺖ ',
-            '-1614' => 'ﺧﻄﺎ ﺩﺭ ﺫﺧﻴﺮﻩ ﺩﺭﺧﻮﺍﺳﺖ ﭘﺮﺩﺍﺧﺖ ﺑﺎ ﻛﺪ QR ',
-            '-1613' => 'ﺧﻄﺎ ﺩﺭ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﭘﺬﻳﺮﻧﺪﻩ ﻛﺘﺎﺑﺨﺎﻧﻪ ﭘﺮﺩﺍﺧﺖ ﻣﻮﺑﺎﻳﻠﻲ ',
-            '-1612' => 'ﺧﻄﺎ ﺩﺭ ﺍﻋﺘﺒﺎﺭﺳﻨﺠﻲ ﺩﺭﺧﻮﺍﺳﺖ ﭘﺮﺩﺍﺧﺖ ﺗﻮﺳﻂ ﻛﺘﺎﺑﺨﺎﻧﻪ ﭘﺮﺩﺍﺧﺖ ﻣﻮﺑﺎﻳﻠﻲ ',
-            '-1611' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﺑﺎﺯﻳﺎﺑﻲ ﺷﻤﺎﺭﻩ ﺳﻔﺎﺭﺵ ﺟﺪﻳﺪ ',
-            '-1610' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﭘﺮﺩﺍﺧﺖ.ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ ',
-            '-1609' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﭘﺮﺩﺍﺧﺖ. ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ ',
-            '-1608' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﭘﺮﺩﺍﺧﺖ ﻗﺒﺾ.ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ ',
-            '-1607' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﭘﺮﺩﺍﺧﺖ ﻗﺒﺾ ﺑﺼﻮﺭﺕ ﺗﻚ ﻓﺎﺯ ',
-            '-1606' => 'Iso Reversal failed ',
-            '-1605' => 'Iso Advice failed ',
-            '-1604' => 'ﺧﻄﺎ ﺩﺭ ﺑﻪ ﺭﻭﺯ ﺭﺳﺎﻧﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﺭﺳﺎﻟﻲ ﺑﻪ ﺳﻮﺋﻴﭻ ﺑﺎﻧﻜﻲ ',
-            '-1603' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1602'=>'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﻗﺒﺾ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1601' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1600' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺷﺎﺭﮊ ﺗﺎﭖ ﺁﭖ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1599' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﻳﻨﺘﺮﻧﺘﻲ ﻗﺒﺾ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1598' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﻳﻨﺘﺮﻧﺘﻲ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1597' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺗﺎﭖ ﺁﭖ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1596' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻗﺒﺾ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1595' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ ',
-            '-1594' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺗﺎﭖ ﺁﭖ ﺍﻡ ﭘﻲ ﺍﻝ ',
-            '-1593' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻗﺒﺾ ﺍﻡ ﭘﻲ ﺍﻝ ',
+            '-1621' => 'ﺍﻧﺠﺎﻡ ﺗﺮﺍﻛﻨﺶ ﻣﺤﺪﻭﺩ ﺑﻪ ﻛﺎﺭﺕ ﻫﺎﻱ ﭘﺬﻳﺮﻧﺪﻩ ﻣﻲ ﺑﺎﺷﺪ',
+            '-1620' => 'ﺗﺎﭖ ﺁﭖ ﺩﺭ ﺩﺭﮔﺎﻩ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ. ﺟﻬﺖ ﺭﻓﻊ ﻣﻐﺎﻳﺮﺕ ﺑﺎ ﻣﺮﻛﺰ ﺗﻤﺎﺱ ﺑﻪ ﺷﻤﺎﺭﻩ 2318-021 ﺗﻤﺎﺱ ﺑﮕﻴﺮﻳﺪ',
+            '-1619' => 'ﺗﺎﭖ ﺁﭖ ﺩﺭ ﻭﺍﺳﻂ ﺳﺮﻭﻳﺲ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ. ﺟﻬﺖ ﺭﻓﻊ ﻣﻐﺎﻳﺮﺕ ﺑﺎ ﻣﺮﻛﺰ ﺗﻤﺎﺱ ﺑﻪ ﺷﻤﺎﺭﻩ 2318-021 ﺗﻤﺎﺱ ﺑﮕﻴﺮﻳﺪ',
+            '-1618' => 'ﺗﺎﭖ ﺁﭖ ﺗﻮﺳﻂ ﺗﺎﻣﻴﻦ ﻛﻨﻨﺪﻩ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ. ﺟﻬﺖ ﺭﻓﻊ ﻣﻐﺎﻳﺮﺕ ﺑﺎ ﻣﺮﻛﺰ ﺗﻤﺎﺱ ﺑﻪ ﺷﻤﺎﺭﻩ 2318-021 ﺗﻤﺎﺱ ﺑﮕﻴﺮﻳﺪ',
+            '-1617' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﺷﺎﺭﮊ ﺗﺎﭘﺂﭖ. ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ',
+            '-1616' => 'ﺧﻄﺎ ﺩﺭ ﭘﺮﺩﺍﺯﺵ ﺗﺮﺍﻛﻨﺶ ﭘﺮﺩﺍﺧﺖ ﺑﺎ ﻛﺪ QR',
+            '-1615' => 'ﺍﺳﺘﺜﻨﺎﻱ ﻧﺎﺷﻨﺎﺧﺘﻪ ﺩﺭ ﭘﺮﺩﺍﺧﺖ',
+            '-1614' => 'ﺧﻄﺎ ﺩﺭ ﺫﺧﻴﺮﻩ ﺩﺭﺧﻮﺍﺳﺖ ﭘﺮﺩﺍﺧﺖ ﺑﺎ ﻛﺪ QR',
+            '-1613' => 'ﺧﻄﺎ ﺩﺭ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﭘﺬﻳﺮﻧﺪﻩ ﻛﺘﺎﺑﺨﺎﻧﻪ ﭘﺮﺩﺍﺧﺖ ﻣﻮﺑﺎﻳﻠﻲ',
+            '-1612' => 'ﺧﻄﺎ ﺩﺭ ﺍﻋﺘﺒﺎﺭﺳﻨﺠﻲ ﺩﺭﺧﻮﺍﺳﺖ ﭘﺮﺩﺍﺧﺖ ﺗﻮﺳﻂ ﻛﺘﺎﺑﺨﺎﻧﻪ ﭘﺮﺩﺍﺧﺖ ﻣﻮﺑﺎﻳﻠﻲ',
+            '-1611' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﺑﺎﺯﻳﺎﺑﻲ ﺷﻤﺎﺭﻩ ﺳﻔﺎﺭﺵ ﺟﺪﻳﺪ',
+            '-1610' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﭘﺮﺩﺍﺧﺖ.ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ',
+            '-1609' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﭘﺮﺩﺍﺧﺖ. ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ',
+            '-1608' => 'ﺧﻄﺎﻱ ﺑﺎﻧﻚ ﺩﺭ ﭘﺮﺩﺍﺧﺖ ﻗﺒﺾ.ﺑﻪ ﻛﺪ ﻭﺿﻌﻴﺖ ﺑﺎﻧﻚ ﻣﺮﺍﺟﻌﻪ ﺷﻮﺩ',
+            '-1607' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﭘﺮﺩﺍﺧﺖ ﻗﺒﺾ ﺑﺼﻮﺭﺕ ﺗﻚ ﻓﺎﺯ',
+            '-1606' => 'Iso Reversal failed',
+            '-1605' => 'Iso Advice failed',
+            '-1604' => 'ﺧﻄﺎ ﺩﺭ ﺑﻪ ﺭﻭﺯ ﺭﺳﺎﻧﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﺭﺳﺎﻟﻲ ﺑﻪ ﺳﻮﺋﻴﭻ ﺑﺎﻧﻜﻲ',
+            '-1603' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1602' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﻗﺒﺾ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1601' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1600' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺷﺎﺭﮊ ﺗﺎﭖ ﺁﭖ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1599' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﻳﻨﺘﺮﻧﺘﻲ ﻗﺒﺾ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1598' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﻳﻨﺘﺮﻧﺘﻲ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1597' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺗﺎﭖ ﺁﭖ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1596' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻗﺒﺾ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1595' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺧﺮﻳﺪ ﺳﺮﻭﻳﺲ ﭘﺮﺩﺍﺧﺖ',
+            '-1594' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺗﺎﭖ ﺁﭖ ﺍﻡ ﭘﻲ ﺍﻝ',
+            '-1593' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻗﺒﺾ ﺍﻡ ﭘﻲ ﺍﻝ',
             '-1592' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺑﺎﺯﻳﺎﺑﻲ ﺍﻃﻼﻋﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺧﺮﻳﺪ ﺍﻡ ﭘﻲ ﺍﻝ ',
             '-1591' => 'ﺗﻮﻛﻦ ﻛﺎﺭﺕ ﻣﻌﺘﺒﺮ ﻧﻤﻲ ﺑﺎﺷﺪ ',
             '-1590' => 'ﺷﻤﺎﺭﻩ ﻣﻮﺑﺎﻳﻞ ﺷﺎﺭﮊ ﺷﻮﻧﺪﻩ ﻣﻌﺘﺒﺮ ﻧﻤﻲ ﺑﺎﺷﺪ ',
@@ -142,7 +151,7 @@ class Parsian extends Driver
             '-1586' => 'ﺧﻄﺎ ﺩﺭ ﺗﺒﺪﻳﻞ ﭘﺎﺳﺦ ﺍﻳﺰﻭ ﺑﻪ ﺧﺮﻭﺟﻲ BusinessRule ',
             '-1585' => 'ﻋﻤﻠﻴﺎﺕ ﺑﺮﮔﺸﺖ ﺗﺮﺍﻛﻨﺶ ﺩﺭ ﺳﺮﻭﻳﺲ ﺑﺮﮔﺸﺖ ﺗﺮﺍﻛﻨﺶ ﻧﺎﻣﻮﻓﻖ ﺑﻮﺩ ',
             '-1584' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﺧﺮﻳﺪ MPL ',
-            '-1583'=>'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﻗﺒﺾ MPL ',
+            '-1583' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﻗﺒﺾ MPL ',
             '-1582' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﻣﻮﺑﺎﻳﻞ ﺧﺮﻳﺪ MPL ',
             '-1581' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺷﺎﺭﮊ ﺗﺎﭖ ﺁﭖ MPL ',
             '-1580' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻴﺎﺕ ﺗﺮﺍﻛﻨﺶ ﺍﻳﻨﺘﺮﻧﺘﻲ ﻗﺒﺾ MPL ',
@@ -373,7 +382,7 @@ class Parsian extends Driver
             '96' => 'ﺍﺷﻜﺎﻝ ﺩﺭ ﻋﻤﻠﻜﺮﺩ ﺳﻴﺴﺘﻢ ',
             '97' => 'ﺗﺮﺍﻛﻨﺶ ﺍﺯ ﺳﻮﻱ ﺻﺎﺩﺭﻛﻨﻨﺪﻩ ﻛﺎﺭﺕ ﺭﺩ ﺷﺪﻩ ﺍﺳﺖ ',
             '99' => 'ﺧﻄﺎﻱ ﺻﺎﺩﺭ ﻛﻨﻨﺪﮔﻲ 	',
-            '200' =>'ﺳﺎﻳﺮ ﺧﻄﺎﻫﺎﻱ ﻧﮕﺎﺷﺖ ﻧﺸﺪﻩ ﺳﺎﻣﺎﻧﻪ ﻫﺎﻱ ﺑﺎﻧﻜﻲ'
+            '200' => 'ﺳﺎﻳﺮ ﺧﻄﺎﻫﺎﻱ ﻧﮕﺎﺷﺖ ﻧﺸﺪﻩ ﺳﺎﻣﺎﻧﻪ ﻫﺎﻱ ﺑﺎﻧﻜﻲ'
         ];
 
         return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $statusCode;
@@ -381,32 +390,27 @@ class Parsian extends Driver
 
     protected function getSuccessResponseStatusCode(): int
     {
-        return  0;
+        return 0;
     }
 
     protected function getPurchaseUrl(): string
     {
-        return $this->getBaseRestServiceUrl().'NewIPGServices/Sale/SaleService.asmx?wsdl';
+        return $this->getBaseUrl().'NewIPGServices/Sale/SaleService.asmx?wsdl';
     }
 
     protected function getPaymentUrl(): string
     {
-        return 'https://pec.shaparak.ir/NewIPG/?token='.$this->getInvoice()->getTransactionId();
+        return $this->getBaseUrl().'NewIPG/?token='.$this->getInvoice()->getTransactionId();
     }
 
     protected function getVerificationUrl(): string
     {
-        return $this->getBaseRestServiceUrl().'NewIPGServices/Confirm/ConfirmService.asmx?wsdl';
+        return $this->getBaseUrl().'NewIPGServices/Confirm/ConfirmService.asmx?wsdl';
     }
 
-    private function getBaseRestServiceUrl(): string
+    private function getBaseUrl(): string
     {
         return 'https://pec.shaparak.ir/';
-    }
-
-    private function getRequestHeaders(): array
-    {
-        return config('gateway_parsian.request_headers');
     }
 
     private function getSoapOptions(): array

@@ -180,6 +180,7 @@ class PayIr extends Driver
         if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
+
         if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
             return '0'.$phoneNumber;
         }

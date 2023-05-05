@@ -185,12 +185,15 @@ class Gateway
         if (empty($this->getGatewayName())) {
             throw new ConfigurationNotFoundException('Gateway not selected or default gateway does not exist.');
         }
+
         if (empty($this->getGatewayConfigKey())) {
             throw new ConfigurationNotFoundException('Gateway configuration key not selected or default configuration does not exist.');
         }
+
         if (empty(config($this->getSettingsConfigKey())) || empty(config($this->getDriverNamespaceConfigKey()))) {
             throw new DriverNotFoundException('Gateway driver settings not found in config file.');
         }
+
         if (!class_exists(config($this->getDriverNamespaceConfigKey()))) {
             throw new DriverNotFoundException('Gateway driver class not found. Check driver aliases or try updating the package');
         }

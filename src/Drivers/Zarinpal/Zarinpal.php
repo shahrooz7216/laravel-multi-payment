@@ -304,10 +304,10 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface, RefundInte
 
     private function getRequestHeaders(): array
     {
-        return config('gateway_zarinpal.request_headers', [
+        return [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ]);
+        ];
     }
 
     private function callApi(string $url, array $data, ?string $authorizationToken = null)
@@ -336,6 +336,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface, RefundInte
         if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
+
         if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
             return '0'.$phoneNumber;
         }

@@ -2,59 +2,63 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Saman;
 
-use SoapClient;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
+use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
 use Omalizadeh\MultiPayment\Receipt;
+use Omalizadeh\MultiPayment\RedirectionForm;
+use SoapClient;
 
 class Saman extends Driver
 {
     public function purchase(): string
     {
-        $data = $this->getPurchaseData();
-        $headers = $this->getRequestHeaders();
-        $response = Http::withHeaders($headers)->post($this->getPurchaseUrl(), $data);
+        $response = Http::withHeaders($this->getRequestHeaders())
+            ->post($this->getPurchaseUrl(), $this->getPurchaseData());
+
         if ($response->successful()) {
+
             if ((int) $response['status'] !== $this->getSuccessResponseStatusCode()) {
                 throw new PurchaseFailedException($response['errorDesc'], $response['errorCode']);
             }
-            $token = $response['token'];
-            $this->getInvoice()->setToken($token);
+
+            $this->getInvoice()->setToken($response['token']);
+
             return $this->getInvoice()->getInvoiceId();
         }
+
         throw new PurchaseFailedException($response->body(), $response->status());
     }
 
     public function pay(): RedirectionForm
     {
-        $payUrl = $this->getPaymentUrl();
         $data = [
             'Token' => $this->getInvoice()->getToken(),
-            'GetMethod' => $this->getCallbackMethod()
+            'GetMethod' => $this->getCallbackMethod(),
         ];
 
-        return $this->redirect($payUrl, $data);
+        return $this->redirect($this->getPaymentUrl(), $data);
     }
 
     public function verify(): Receipt
     {
         $statusCode = (int) request('Status');
+
         if ($statusCode !== $this->getSuccessfulPaymentStatusCode()) {
             throw new PaymentFailedException($this->getStatusMessage($statusCode), $statusCode);
         }
 
         $data = $this->getVerificationData();
-        $soapOptions = $this->getSoapOptions();
-        $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
+        $soap = new SoapClient($this->getVerificationUrl(), $this->getSoapOptions());
         $responseCode = (int) $soap->verifyTransaction($data['RefNum'], $data['MerchantID']);
+
         if ($responseCode < 0) {
             throw new PaymentFailedException($this->getStatusMessage($responseCode), $responseCode);
         }
+
         $this->getInvoice()->setTransactionId(request('RefNum'));
         $this->getInvoice()->setInvoiceId(request('ResNum'));
 
@@ -66,7 +70,9 @@ class Saman extends Driver
         if (empty($this->settings['terminal_id'])) {
             throw new InvalidConfigurationException('Terminal id has not been set.');
         }
+
         $cellNumber = $this->getInvoice()->getPhoneNumber();
+
         if (!empty($cellNumber)) {
             $cellNumber = $this->checkPhoneNumberFormat($cellNumber);
         }
@@ -159,16 +165,16 @@ class Saman extends Driver
     private function getSoapOptions(): array
     {
         return config('gateway_saman.soap_options', [
-            'encoding' => 'UTF-8'
+            'encoding' => 'UTF-8',
         ]);
     }
 
     private function getRequestHeaders(): array
     {
-        return config('gateway_saman.request_headers', [
+        return [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ]);
+        ];
     }
 
     private function checkPhoneNumberFormat(string $phoneNumber): string

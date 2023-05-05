@@ -11,7 +11,7 @@ return [
      *  gateway configurations
      */
     'main' => [
-        'authorization_token' => '', // used only to refund payments (can be created from zarinpal panel)
+        'authorization_token' => '', // optional, used only to refund payments (can be created from zarinpal panel)
         'merchant_id' => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'mode' => 'sandbox', // supported values: normal, zaringate, sandbox

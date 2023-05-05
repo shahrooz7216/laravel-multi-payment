@@ -21,6 +21,7 @@ class Zibal extends Driver
 
         if ($response['result'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['result']);
+
             throw new PurchaseFailedException($message, $response['result']);
         }
 
@@ -53,9 +54,11 @@ class Zibal extends Driver
 
         if ($responseCode !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($responseCode);
+
             if ($responseCode === $this->getPaymentAlreadyVerifiedStatusCode()) {
                 throw new PaymentAlreadyVerifiedException($message, $responseCode);
             }
+
             throw new PaymentFailedException($message, $responseCode);
         }
 
@@ -165,10 +168,10 @@ class Zibal extends Driver
 
     private function getRequestHeaders(): array
     {
-        return config('gateway_zibal.request_headers', [
+        return [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ]);
+        ];
     }
 
     private function callApi(string $url, array $data)
@@ -189,6 +192,7 @@ class Zibal extends Driver
         if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
+
         if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
             return '0'.$phoneNumber;
         }

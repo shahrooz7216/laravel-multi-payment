@@ -160,7 +160,7 @@ class Novin extends Driver
 
         return [
             'UserId' => $this->settings['username'],
-            'Password' => $this->settings['password']
+            'Password' => $this->settings['password'],
         ];
     }
 
@@ -274,10 +274,10 @@ class Novin extends Driver
 
     private function getRequestHeaders(): array
     {
-        return config('gateway_novin.request_headers', [
+        return [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ]);
+        ];
     }
 
     private function getLanguage(): string
