@@ -23,10 +23,9 @@ return [
         'callback_method' => 'POST',
         'description' => '',
     ],
-
     'other' => [
         'pin_code'  => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using parsian',
-    ]
+    ],
 ];
