@@ -166,7 +166,7 @@ class Invoice
     /**
      * @return float|int
      */
-    public function getAmountInTomans()
+    public function getAmountInTomans(): float|int
     {
         return $this->amount / 10;
     }

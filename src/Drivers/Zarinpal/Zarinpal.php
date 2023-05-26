@@ -10,7 +10,6 @@ use Omalizadeh\MultiPayment\Drivers\Contracts\RefundInterface;
 use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
 use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
 use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidGatewayResponseDataException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
 use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
 use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
@@ -22,19 +21,20 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface, RefundInte
 {
     public function purchase(): string
     {
-        $response = $this->callApi($this->getPurchaseUrl(), $this->getPurchaseData());
+        $purchaseData = $this->getPurchaseData();
+        $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
 
         if (isset($response['errors']['code'])) {
             $responseCode = (int) $response['errors']['code'];
             $message = $this->getStatusMessage($responseCode);
 
-            throw new PurchaseFailedException($message, $responseCode);
+            throw new PurchaseFailedException($message, $responseCode, $purchaseData);
         }
 
         if (empty($response['data']['authority']) || (int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
 
-            throw new PurchaseFailedException($message, $response['data']['code']);
+            throw new PurchaseFailedException($message, $response['data']['code'], $purchaseData);
         }
 
         $this->getInvoice()->setTransactionId($response['data']['authority']);
@@ -95,7 +95,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface, RefundInte
         if ((int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
             $message = $this->getStatusMessage($response['data']['code']);
 
-            throw new InvalidGatewayResponseDataException($message, $response['data']['code']);
+            throw new HttpRequestFailedException($message, $response['data']['code']);
         }
 
         return $response['data']['authorities'];
@@ -194,7 +194,7 @@ class Zarinpal extends Driver implements UnverifiedPaymentsInterface, RefundInte
         ];
     }
 
-    protected function getStatusMessage($statusCode): string
+    protected function getStatusMessage(int|string $statusCode): string
     {
         $messages = [
             -9 => 'خطای اعتبار سنجی',

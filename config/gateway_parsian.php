@@ -18,12 +18,12 @@ return [
      *  gateway configurations.
      */
     'main' => [
-        'pin_code' => '',
+        'pin' => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => '',
     ],
     'other' => [
-        'pin_code' => '',
+        'pin' => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using parsian',
     ],

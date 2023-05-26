@@ -3,7 +3,7 @@
 namespace Omalizadeh\MultiPayment\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Omalizadeh\MultiPayment\Gateway;
+use Omalizadeh\MultiPayment\PaymentGateway;
 
 class MultiPaymentServiceProvider extends ServiceProvider
 {
@@ -12,7 +12,7 @@ class MultiPaymentServiceProvider extends ServiceProvider
         parent::register();
 
         $this->app->bind('PaymentGateway', function () {
-            return new Gateway();
+            return new PaymentGateway();
         });
 
         $this->mergeConfigFrom(

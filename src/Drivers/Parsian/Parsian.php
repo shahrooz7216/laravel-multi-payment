@@ -15,7 +15,8 @@ class Parsian extends Driver
     public function purchase(): string
     {
         $soap = new SoapClient($this->getPurchaseUrl(), $this->getSoapOptions());
-        $response = $soap->SalePaymentRequest($this->getPurchaseData());
+        $purchaseData = $this->getPurchaseData();
+        $response = $soap->SalePaymentRequest($purchaseData);
 
         if ($response->SalePaymentRequestResult && $response->SalePaymentRequestResult->Status === $this->getSuccessResponseStatusCode()) {
             $this->getInvoice()->setTransactionId($response->SalePaymentRequestResult->Token);
@@ -26,6 +27,7 @@ class Parsian extends Driver
         throw new PurchaseFailedException(
             $this->getStatusMessage($response->SalePaymentRequestResult->Status),
             $response->SalePaymentRequestResult->Status,
+            $purchaseData,
         );
     }
 
@@ -60,13 +62,13 @@ class Parsian extends Driver
 
     protected function getPurchaseData(): array
     {
-        if (empty($this->settings['pin_code'])) {
-            throw new InvalidConfigurationException('pin_code has not been set.');
+        if (empty($this->settings['pin'])) {
+            throw new InvalidConfigurationException('pin has not been set.');
         }
 
         return [
             'requestData' => [
-                'LoginAccount' => $this->settings['pin_code'],
+                'LoginAccount' => $this->settings['pin'],
                 'OrderId' => $this->getInvoice()->getInvoiceId(),
                 'Amount' => $this->getInvoice()->getAmount(),
                 'CallBackUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
@@ -80,13 +82,13 @@ class Parsian extends Driver
     {
         return [
             'requestData' => [
-                'LoginAccount' => $this->settings['pin_code'],
+                'LoginAccount' => $this->settings['pin'],
                 'Token' => $this->getInvoice()->getTransactionId(),
             ],
         ];
     }
 
-    protected function getStatusMessage($statusCode): string
+    protected function getStatusMessage(int|string $statusCode): string
     {
         $messages = [
             '-32768' => 'ﺧﻄﺎﻱ ﻧﺎﺷﻨﺎﺧﺘﻪ ﺭﺥ ﺩﺍﺩﻩ ﺍﺳﺖ',
@@ -385,7 +387,7 @@ class Parsian extends Driver
             '200' => 'ﺳﺎﻳﺮ ﺧﻄﺎﻫﺎﻱ ﻧﮕﺎﺷﺖ ﻧﺸﺪﻩ ﺳﺎﻣﺎﻧﻪ ﻫﺎﻱ ﺑﺎﻧﻜﻲ',
         ];
 
-        return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $statusCode;
+        return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : 'خطای تعریف نشده رخ داد.';
     }
 
     protected function getSuccessResponseStatusCode(): int

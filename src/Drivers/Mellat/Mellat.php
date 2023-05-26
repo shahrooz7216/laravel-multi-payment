@@ -17,12 +17,17 @@ class Mellat extends Driver
     public function purchase(): string
     {
         $soap = new SoapClient($this->getPurchaseUrl(), $this->getSoapOptions());
-        $response = $soap->bpPayRequest($this->getPurchaseData());
+        $purchaseData = $this->getPurchaseData();
+        $response = $soap->bpPayRequest($purchaseData);
         $responseData = explode(',', $response->return);
         $responseCode = $responseData[0];
 
         if ($responseCode != $this->getSuccessResponseStatusCode()) {
-            throw new PurchaseFailedException($this->getStatusMessage($responseCode), $responseCode);
+            throw new PurchaseFailedException(
+                $this->getStatusMessage($responseCode),
+                $responseCode,
+                $purchaseData,
+            );
         }
 
         $hashCode = $responseData[1];
@@ -134,7 +139,7 @@ class Mellat extends Driver
         ];
     }
 
-    protected function getStatusMessage($statusCode): string
+    protected function getStatusMessage(int|string $statusCode): string
     {
         $translations = [
             '0' => 'تراکنش با موفقیت انجام شد',
@@ -184,6 +189,7 @@ class Mellat extends Driver
             '62' => 'مسیر بازگشت به سایت در دامنه ثبت شده برای پذیرنده قرار ندارد',
             '98' => 'سقف استفاده از رمز ایستا به پایان رسیده است',
         ];
+
         $unknownError = 'خطای ناشناخته رخ داده است.';
 
         return array_key_exists($statusCode, $translations) ? $translations[$statusCode] : $unknownError;

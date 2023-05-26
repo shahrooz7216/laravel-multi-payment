@@ -6,7 +6,7 @@ use Exception;
 
 class PurchaseFailedException extends Exception
 {
-    protected array $context;
+    private array $context;
 
     public function __construct($message = '', $code = 0, array $context = [])
     {
