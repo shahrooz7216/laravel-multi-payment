@@ -12,7 +12,7 @@ return [
      */
     'main' => [
         'api_key' => '',
-        'sandbox' => true, // turning on/off sandbox (testing) mode
+        'sandbox' => true, // sandbox (testing) mode activation
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using idpay',
     ],

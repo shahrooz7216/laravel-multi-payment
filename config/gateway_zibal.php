@@ -11,7 +11,7 @@ return [
      *  gateway configurations.
      */
     'main' => [
-        'merchant' => '', // use 'zibal' for sandbox (testing) mode
+        'merchant' => '', // use 'zibal' to enable sandbox (testing) mode
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using zarinpal',
     ],
