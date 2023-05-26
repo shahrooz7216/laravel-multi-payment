@@ -8,7 +8,7 @@ use Omalizadeh\MultiPayment\Invoice;
 
 class ZarinpalDriverTest extends TestCase
 {
-    public function testInvoiceCanBePurchased(): void
+    public function test_invoice_can_be_purchased(): void
     {
         $invoice = new Invoice(1200);
 
@@ -27,7 +27,7 @@ class ZarinpalDriverTest extends TestCase
         $this->assertStringContainsString('testing-authority', $redirect['action']);
     }
 
-    public function testInvoiceCanBeVerified(): void
+    public function test_paid_invoice_can_be_verified(): void
     {
         Http::fake([
             'https://sandbox.zarinpal.com/pg/v4/payment/verify.json' => Http::response([
@@ -47,7 +47,7 @@ class ZarinpalDriverTest extends TestCase
         $this->assertEquals('66-****-99', $receipt->getCardNumber());
     }
 
-    public function testPaymentCanBeRefunded(): void
+    public function test_payment_can_be_refunded(): void
     {
         Http::fake([
             'https://sandbox.zarinpal.com/pg/v4/payment/refund.json' => Http::response([
@@ -67,7 +67,7 @@ class ZarinpalDriverTest extends TestCase
         $this->assertEquals('IR-XXX-XXXX', $response['iban']);
     }
 
-    public function testUnverifiedPaymentsList(): void
+    public function test_unverified_payments_can_be_fetched(): void
     {
         Http::fake([
             'https://sandbox.zarinpal.com/pg/v4/payment/unVerified.json' => Http::response([
