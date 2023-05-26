@@ -2,7 +2,6 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Novin;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
@@ -21,12 +20,17 @@ class Novin extends Driver
 
     public function purchase(): string
     {
-        $response = $this->callApi($this->getLoginUrl(), $this->getLoginData());
+        $loginData = $this->getLoginData();
+        $response = $this->callApi($this->getLoginUrl(), $loginData);
 
         if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
             $this->sessionId = $response['SessionId'];
         } else {
-            throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
+            throw new PurchaseFailedException(
+                $this->getStatusMessage($response['Result']),
+                $response['Result'],
+                $loginData,
+            );
         }
 
         $purchaseData = $this->getPurchaseData();
@@ -54,10 +58,11 @@ class Novin extends Driver
             }
         }
 
-        throw new PurchaseFailedException($this->getStatusMessage($response['Result']), 0, Arr::except($purchaseData, [
-            'WSContext',
-            'TransType',
-        ]));
+        throw new PurchaseFailedException(
+            $this->getStatusMessage($response['Result']),
+            $response['Result'],
+            $purchaseData,
+        );
     }
 
     public function pay(): RedirectionForm
@@ -194,7 +199,7 @@ class Novin extends Driver
         ];
     }
 
-    protected function getStatusMessage($statusCode): string
+    protected function getStatusMessage(int|string $statusCode): string
     {
         $messages = [
             'erSucceed' => 'سرویس با موفقیت اجرا شد.',

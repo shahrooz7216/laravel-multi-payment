@@ -18,22 +18,22 @@ class Pasargad extends Driver
 
     public function purchase(): string
     {
-        $data = $this->getPurchaseData();
-        $response = $this->callApi($this->getPurchaseUrl(), $data);
+        $purchaseData = $this->getPurchaseData();
+        $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
 
         if ($response->successful()) {
             $result = $response->json();
 
             if ($result['IsSuccess'] != $this->getSuccessResponseStatusCode()) {
-                throw new PurchaseFailedException($result['Message'], $response->status());
+                throw new PurchaseFailedException($result['Message'], $response->status(), $purchaseData);
             }
 
             $this->getInvoice()->setToken($result['Token']);
 
-            return $data['InvoiceNumber'];
+            return $purchaseData['InvoiceNumber'];
         }
 
-        throw new PurchaseFailedException($response->body(), $response->status());
+        throw new PurchaseFailedException($response->body(), $response->status(), $purchaseData);
     }
 
     public function pay(): RedirectionForm
@@ -160,12 +160,12 @@ class Pasargad extends Driver
         ];
     }
 
-    protected function getStatusMessage($statusCode): string
+    protected function getStatusMessage(int|string $statusCode): string
     {
         return 'خطا در تبادل اطلاعات با درگاه';
     }
 
-    protected function getSuccessResponseStatusCode()
+    protected function getSuccessResponseStatusCode(): bool
     {
         return true;
     }
