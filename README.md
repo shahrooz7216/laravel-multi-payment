@@ -32,7 +32,7 @@ Supports laravel **v8.0+** and requires php **v8.1+**
 Install using composer
 
 ```bash 
-  composer require omalizadeh/laravel-multi-payment
+  composer require shahrooz7216/laravel-multi-payment
 ```
 
 Publish main config file
@@ -53,6 +53,11 @@ For example:
 ```bash
   php artisan vendor:publish --tag=zarinpal-config
 ```
+Also you may have to add Service provider to the providers Array in app.php file in config directory:
+'providers' => [
+    shahrooz7216\MultiPayment\Providers\MultiPaymentServiceProvider::class,
+],
+
 
 Also you can publish view file for gateway redirection and customize it
 ```bash
