@@ -2,6 +2,7 @@
 
 namespace Omalizadeh\MultiPayment\Drivers\Novin;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
@@ -20,66 +21,85 @@ class Novin extends Driver
 
     public function purchase(): string
     {
-        $loginData = $this->getLoginData();
-        $response = $this->callApi($this->getLoginUrl(), $loginData);
 
-        if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
-            $this->sessionId = $response['SessionId'];
-        } else {
-            throw new PurchaseFailedException(
-                $this->getStatusMessage($response['Result']),
-                $response['Result'],
-                $loginData,
-            );
-        }
+//		 Changed(Added If statement in order to not get the token each time) By Shahrooz on 1402-03-02
+//		if($this->settings['novin_token'])
+//		{
+//			$this->sessionId = $this->settings['novin_token'];
+//		}
+//		else
+//		{
+//			$response = $this->callApi($this->getLoginUrl(), $this->getLoginData());
+//
+//			if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
+//				$this->sessionId = $response['SessionId'];
+//			} else {
+//				throw new PurchaseFailedException($this->getStatusMessage($response['Result']));
+//			}
+//		}
 
         $purchaseData = $this->getPurchaseData();
+//		throw new PurchaseFailedException($this->getStatusMessage(json_encode($purchaseData)));
         $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
 
-        if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
-            $dataToSign = $response['DataToSign'];
-            $dataUniqueId = $response['UniqueId'];
+        if ($response['Result'] == $this->getSuccessResponseStatusCode())
+		{
+			if ($this->settings['mode'] == 'NoSign')
+			{
+				$token = $response['Token'];
+				$this->getInvoice()->setToken($token);
+				return $this->getInvoice()->getInvoiceId();
+			}
+			else if ($this->settings['mode'] == 'Sign')
+			{
+				$dataToSign = $response['DataToSign'];
+				$dataUniqueId = $response['UniqueId'];
 
-            $signature = $this->getSignature($dataToSign);
+				$signature = $this->getSignature($dataToSign);
 
-            $tokenGenerationData = [
-                'WSContext' => $this->getAuthData(),
-                'Signature' => $signature,
-                'UniqueId' => $dataUniqueId,
-            ];
+				$tokenGenerationData = [
+					'WSContext' => $this->getAuthData(),
+					'Signature' => $signature,
+					'UniqueId' => $dataUniqueId
+				];
 
-            $response = $this->callApi($this->getTokenGenerationUrl(), $tokenGenerationData);
+				$response = $this->callApi($this->getTokenGenerationUrl(), $tokenGenerationData);
 
-            if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
-                $token = $response['Token'];
-                $this->getInvoice()->setToken($token);
-
-                return $this->getInvoice()->getInvoiceId();
-            }
+				if ($response['Result'] == $this->getSuccessResponseStatusCode())
+				{
+					$token = $response['Token'];
+					$this->getInvoice()->setToken($token);
+					return $this->getInvoice()->getInvoiceId();
+				}
+			}
         }
 
-        throw new PurchaseFailedException(
-            $this->getStatusMessage($response['Result']),
-            $response['Result'],
-            $purchaseData,
-        );
+        throw new PurchaseFailedException($this->getStatusMessage($response['Result']), 0, Arr::except($purchaseData, [
+            'WSContext',
+            'TransType',
+        ]));
     }
 
     public function pay(): RedirectionForm
     {
         $payUrl = $this->getPaymentUrl();
 
-        $payUrl .= ('?token='.$this->getInvoice()->getToken().'&language='.$this->getLanguage());
+//        $payUrl .= ('?token='.$this->getInvoice()->getToken().'&language='.$this->getLanguage());
 
         return $this->redirect($payUrl, [
-            'Token' => $this->getInvoice()->getToken(),
-            'Language' => $this->getLanguage(),
+            'token' => $this->getInvoice()->getToken(),
+            'language' => $this->getLanguage(),
+//			'Amount' => $this->getInvoice()->getAmount(),
+//			'RedirectURL' => $this->getPurchaseData()['RedirectUrl'],
+//			'ResNum' => time(),
+//			'MID' => "".$this->settings['username'],
+//			'MID' => '',
         ]);
     }
 
     public function verify(): Receipt
     {
-        if (! empty(request('State')) && strtoupper(request('State')) !== 'OK') {
+        if (!empty(request('State')) && strtoupper(request('State')) !== 'OK') {
             throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
 
@@ -103,12 +123,12 @@ class Novin extends Driver
 
     private function getSignature(string $dataToSign): string
     {
-        $unsignedFile = fopen($this->getUnsignedDataFilePath(), 'w');
+        $unsignedFile = fopen($this->getUnsignedDataFilePath(), "w");
         fwrite($unsignedFile, $dataToSign);
         fclose($unsignedFile);
 
-        $signedFile = fopen($this->getSignedDataFilePath(), 'w');
-        fwrite($signedFile, '');
+        $signedFile = fopen($this->getSignedDataFilePath(), "w");
+        fwrite($signedFile, "");
         fclose($signedFile);
 
         openssl_pkcs7_sign(
@@ -117,7 +137,7 @@ class Novin extends Driver
             'file://'.$this->settings['certificate_path'],
             ['file://'.$this->settings['certificate_path'], $this->settings['certificate_password']],
             [],
-            PKCS7_NOSIGS,
+            PKCS7_NOSIGS
         );
 
         $sigendData = file_get_contents($this->getSignedDataFilePath());
@@ -152,21 +172,21 @@ class Novin extends Driver
 
         return [
             'UserName' => $this->settings['username'],
-            'Password' => $this->settings['password'],
+            'Password' => $this->settings['password']
         ];
     }
 
     private function getAuthData(): array
     {
-        if (! empty($this->sessionId)) {
-            return [
-                'SessionId' => $this->sessionId,
-            ];
-        }
+//        if (!empty($this->sessionId)) {
+//            return [
+//                'SessionId' => $this->sessionId,
+//            ];
+//        }
 
         return [
             'UserId' => $this->settings['username'],
-            'Password' => $this->settings['password'],
+            'Password' => $this->settings['password']
         ];
     }
 
@@ -174,7 +194,7 @@ class Novin extends Driver
     {
         $phoneNumber = $this->getInvoice()->getPhoneNumber();
 
-        if (! empty($phoneNumber)) {
+        if (!empty($phoneNumber)) {
             $phoneNumber = $this->checkPhoneNumberFormat($phoneNumber);
         }
 
@@ -183,6 +203,7 @@ class Novin extends Driver
             'TransType' => static::BANK_BUY_TRANSACTION_TYPE,
             'ReserveNum' => $this->getInvoice()->getInvoiceId(),
             'Amount' => $this->getInvoice()->getAmount(),
+            'TerminalId' => $this->settings['terminal_id'],
             'RedirectUrl' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
             'MobileNo' => $phoneNumber,
             'Email' => $this->getInvoice()->getEmail(),
@@ -199,7 +220,7 @@ class Novin extends Driver
         ];
     }
 
-    protected function getStatusMessage(int|string $statusCode): string
+    protected function getStatusMessage($statusCode): string
     {
         $messages = [
             'erSucceed' => 'سرویس با موفقیت اجرا شد.',
@@ -255,7 +276,8 @@ class Novin extends Driver
 
     protected function getPurchaseUrl(): string
     {
-        return $this->getBaseRestServiceUrl().'generateTransactionDataToSign/';
+//        return $this->getBaseRestServiceUrl().'generateTransactionDataToSign/';
+        return $this->getBaseRestServiceUrl().'generateTokenWithNoSign/';
     }
 
     protected function getTokenGenerationUrl(): string
@@ -265,7 +287,7 @@ class Novin extends Driver
 
     protected function getPaymentUrl(): string
     {
-        return 'https://pna.shaparak.ir/_ipgw_//payment/';
+        return 'https://pna.shaparak.ir/_ipgw_/payment/';
     }
 
     protected function getVerificationUrl(): string
@@ -280,10 +302,10 @@ class Novin extends Driver
 
     private function getRequestHeaders(): array
     {
-        return [
+        return config('gateway_novin.request_headers', [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ];
+        ]);
     }
 
     private function getLanguage(): string
