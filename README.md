@@ -1,14 +1,9 @@
-[![Latest Stable Version](https://poser.pugx.org/shahrooz7216/laravel-multi-payment/v)](//packagist.org/packages/shahrooz7216/laravel-multi-payment)
-[![Tests](https://github.com/shahrooz7216/laravel-multi-payment/actions/workflows/tests.yml/badge.svg)](https://github.com/shahrooz7216/laravel-multi-payment/actions/workflows/tests.yml)
-[![Total Downloads](https://poser.pugx.org/shahrooz7216/laravel-multi-payment/downloads)](//packagist.org/packages/shahrooz7216/laravel-multi-payment)
-[![License](https://poser.pugx.org/shahrooz7216/laravel-multi-payment/license)](//packagist.org/packages/shahrooz7216/laravel-multi-payment)
 
 # Laravel Online Payment Gateway Package
 
 This is a laravel gateway payment package with multi driver support. Each driver can have multiple configurations.
-Supports laravel **v8.0+** and requires php **v8.1+**
 
-> Star! if you liked this package.
+Supports laravel **v7.0+** and requires php **v7.4+**
 
 <div dir="rtl">
 
