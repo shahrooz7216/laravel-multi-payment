@@ -1,5 +1,5 @@
 {
-    "name": "omalizadeh/laravel-multi-payment",
+    "name": "shahrooz7216/laravel-multi-payment",
     "description": "A driver-based laravel package for online payments via multiple gateways",
     "homepage": "https://github.com/omalizadeh/laravel-multi-payment",
     "type": "library",
