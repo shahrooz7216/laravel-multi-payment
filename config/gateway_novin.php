@@ -5,7 +5,7 @@ return [
     /**
      *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Novin\Novin::class,
+    'driver' => shahrooz7216\MultiPayment\Drivers\Novin\Novin::class,
 
     /**
      *  gateway payment page language
