@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers\Contracts;
+namespace shahrooz7216\MultiPayment\Drivers\Contracts;
 
 interface UnverifiedPaymentsInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment;
+namespace shahrooz7216\MultiPayment;
 
 use Exception;
 use Ramsey\Uuid\Uuid;
@@ -28,7 +28,7 @@ class Invoice
         $this->setAmount($amount);
         $this->uuid = Uuid::uuid4()->toString();
 
-        if (! empty($transactionId)) {
+        if (!empty($transactionId)) {
             $this->setTransactionId($transactionId);
         }
     }
@@ -166,7 +166,7 @@ class Invoice
     /**
      * @return float|int
      */
-    public function getAmountInTomans(): float|int
+    public function getAmountInTomans()
     {
         return $this->amount / 10;
     }
@@ -256,7 +256,7 @@ class Invoice
         return [
             'user_id' => $this->getUserId(),
             'phone' => $this->getPhoneNumber(),
-            'email' => $this->getEmail(),
+            'email' => $this->getEmail()
         ];
     }
 }

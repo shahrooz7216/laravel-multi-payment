@@ -1,8 +1,8 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Tests;
+namespace shahrooz7216\MultiPayment\Tests;
 
-use Omalizadeh\MultiPayment\Providers\MultiPaymentServiceProvider;
+use shahrooz7216\MultiPayment\Providers\MultiPaymentServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {

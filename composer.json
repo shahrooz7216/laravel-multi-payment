@@ -1,7 +1,7 @@
 {
-    "name": "omalizadeh/laravel-multi-payment",
+    "name": "shahrooz7216/laravel-multi-payment",
     "description": "A driver-based laravel package for online payments via multiple gateways",
-    "homepage": "https://github.com/omalizadeh/laravel-multi-payment",
+    "homepage": "https://github.com/shahrooz7216/laravel-multi-payment",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -54,12 +54,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Omalizadeh\\MultiPayment\\": "src/"
+            "shahrooz7216\\MultiPayment\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Omalizadeh\\MultiPayment\\Tests\\": "tests/"
+            "shahrooz7216\\MultiPayment\\Tests\\": "tests/"
         }
     },
     "config": {
@@ -68,10 +68,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Omalizadeh\\MultiPayment\\Providers\\MultiPaymentServiceProvider"
+                "shahrooz7216\\MultiPayment\\Providers\\MultiPaymentServiceProvider"
             ],
             "aliases": {
-                "PaymentGateway": "Omalizadeh\\MultiPayment\\Facades\\PaymentGateway"
+                "PaymentGateway": "shahrooz7216\\MultiPayment\\Facades\\PaymentGateway"
             }
         }
     },

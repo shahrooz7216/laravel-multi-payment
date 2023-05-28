@@ -1,8 +1,8 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Tests;
+namespace shahrooz7216\MultiPayment\Tests;
 
-use Omalizadeh\MultiPayment\Invoice;
+use shahrooz7216\MultiPayment\Invoice;
 
 class InvoiceTest extends TestCase
 {

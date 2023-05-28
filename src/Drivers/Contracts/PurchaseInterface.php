@@ -1,10 +1,10 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers\Contracts;
+namespace shahrooz7216\MultiPayment\Drivers\Contracts;
 
-use Omalizadeh\MultiPayment\Invoice;
-use Omalizadeh\MultiPayment\Receipt;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use shahrooz7216\MultiPayment\Invoice;
+use shahrooz7216\MultiPayment\Receipt;
+use shahrooz7216\MultiPayment\RedirectionForm;
 
 interface PurchaseInterface
 {

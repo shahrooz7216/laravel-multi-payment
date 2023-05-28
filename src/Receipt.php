@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment;
+namespace shahrooz7216\MultiPayment;
 
 use Exception;
 
@@ -22,7 +22,7 @@ class Receipt
         Invoice $invoice,
         string $traceNumber,
         ?string $referenceId = null,
-        ?string $cardNumber = null,
+        ?string $cardNumber = null
     ) {
         $this->invoice = $invoice;
         $this->traceNumber = $traceNumber;

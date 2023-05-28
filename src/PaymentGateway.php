@@ -1,14 +1,14 @@
 <?php
 
-namespace Omalizadeh\MultiPayment;
+namespace shahrooz7216\MultiPayment;
 
 use Closure;
 use Exception;
-use Omalizadeh\MultiPayment\Drivers\Contracts\PurchaseInterface;
-use Omalizadeh\MultiPayment\Drivers\Contracts\RefundInterface;
-use Omalizadeh\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
-use Omalizadeh\MultiPayment\Exceptions\DriverNotFoundException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
+use shahrooz7216\MultiPayment\Drivers\Contracts\PurchaseInterface;
+use shahrooz7216\MultiPayment\Drivers\Contracts\RefundInterface;
+use shahrooz7216\MultiPayment\Drivers\Contracts\UnverifiedPaymentsInterface;
+use shahrooz7216\MultiPayment\Exceptions\DriverNotFoundException;
+use shahrooz7216\MultiPayment\Exceptions\InvalidConfigurationException;
 use ReflectionClass;
 
 class PaymentGateway

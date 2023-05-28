@@ -3,16 +3,16 @@
 return [
 
     /**
-     *  driver class namespace.
+     *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\IDPay\IDPay::class,
+    'driver' => shahrooz7216\MultiPayment\Drivers\IDPay\IDPay::class,
 
     /**
-     *  gateway configurations.
+     *  gateway configurations
      */
     'main' => [
         'api_key' => '',
-        'sandbox' => true, // sandbox (testing) mode activation
+        'sandbox' => true, // turning on/off sandbox (testing) mode
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using idpay',
     ],
@@ -21,5 +21,5 @@ return [
         'sandbox' => true,
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using idpay',
-    ],
+    ]
 ];

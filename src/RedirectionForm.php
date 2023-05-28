@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment;
+namespace shahrooz7216\MultiPayment;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Support\Arrayable;
@@ -11,8 +11,8 @@ use Illuminate\Http\JsonResponse;
 
 class RedirectionForm implements Arrayable, Responsable
 {
-    protected array $inputs;
     protected string $method;
+    protected array $inputs;
     protected string $action;
 
     /**
@@ -30,7 +30,7 @@ class RedirectionForm implements Arrayable, Responsable
     /**
      * @return string
      */
-    public function getAction(): string
+    public function getUrl(): string
     {
         return $this->action;
     }
@@ -59,18 +59,8 @@ class RedirectionForm implements Arrayable, Responsable
     public function toJsonResponse(): JsonResponse
     {
         return response()->json([
-            'data' => $this->toArray(),
+            'data' => $this->toArray()
         ]);
-    }
-
-    /**
-     * Renders a view that redirects to payment gateway automatically.
-     *
-     * @return Application|Factory|View
-     */
-    public function view(): Factory|View|Application
-    {
-        return view('multipayment::redirect_to_gateway', $this->toArray());
     }
 
     /**
@@ -81,14 +71,34 @@ class RedirectionForm implements Arrayable, Responsable
     public function toArray(): array
     {
         return [
-            'action' => $this->getAction(),
+            'action' => $this->getUrl(),
             'inputs' => $this->getInputs(),
             'method' => $this->getMethod(),
         ];
     }
 
+    /**
+     * Renders a view that redirects to payment gateway automatically.
+     *
+     * @return Application|Factory|View
+     */
+    public function view()
+    {
+        return view('multipayment::gateway_redirect', $this->toArray());
+    }
+
     public function toResponse($request): JsonResponse
     {
         return $this->toJsonResponse();
+    }
+
+    /**
+     * @return Application|Factory|View
+     *
+     * @deprecated
+     */
+    public function render()
+    {
+        return view('multipayment::gateway_redirect', $this->toArray());
     }
 }

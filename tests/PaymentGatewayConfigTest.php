@@ -1,9 +1,9 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Tests;
+namespace shahrooz7216\MultiPayment\Tests;
 
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Facades\PaymentGateway;
+use shahrooz7216\MultiPayment\Exceptions\InvalidConfigurationException;
+use shahrooz7216\MultiPayment\Facades\PaymentGateway;
 
 class PaymentGatewayConfigTest extends TestCase
 {

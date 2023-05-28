@@ -1,53 +1,50 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers\IDPay;
+namespace shahrooz7216\MultiPayment\Drivers\IDPay;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
-use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\Receipt;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use shahrooz7216\MultiPayment\Drivers\Contracts\Driver;
+use shahrooz7216\MultiPayment\Exceptions\InvalidConfigurationException;
+use shahrooz7216\MultiPayment\Exceptions\PaymentAlreadyVerifiedException;
+use shahrooz7216\MultiPayment\Exceptions\PaymentFailedException;
+use shahrooz7216\MultiPayment\Exceptions\PurchaseFailedException;
+use shahrooz7216\MultiPayment\Receipt;
+use shahrooz7216\MultiPayment\RedirectionForm;
 
 class IDPay extends Driver
 {
-    private ?string $paymentUrl = null;
+    private ?string $link = null;
 
     public function purchase(): string
     {
-        $purchaseData = $this->getPurchaseData();
-
-        $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
+        $response = $this->callApi($this->getPurchaseUrl(), $this->getPurchaseData());
 
         if (isset($response['error_code'])) {
             $message = $response['error_message'] ?? $this->getStatusMessage($response['error_code']);
-
-            throw new PurchaseFailedException($message, $response['error_code'], $purchaseData);
+            throw new PurchaseFailedException($message, $response['error_code']);
         }
 
         $this->getInvoice()->setTransactionId($response['id']);
 
-        $this->setPaymentUrl($response['link']);
+        $this->setLink($response['link']);
 
         return $response['id'];
     }
 
     public function pay(): RedirectionForm
     {
-        return $this->redirect($this->getPaymentUrl(), [], 'GET');
+        return $this->redirect($this->link, [], 'GET');
     }
 
     public function verify(): Receipt
     {
         $status = (int) request('status');
 
-        if (! in_array($status, [
+        if (!in_array($status, [
             $this->getPendingVerificationStatusCode(),
             $this->getPaymentAlreadyVerifiedStatusCode(),
-            $this->getSuccessResponseStatusCode(),
+            $this->getSuccessResponseStatusCode()
         ], true)
         ) {
             throw new PaymentFailedException($this->getStatusMessage($status), $status);
@@ -57,7 +54,6 @@ class IDPay extends Driver
 
         if (isset($response['error_code'])) {
             $message = $response['error_message'] ?? $this->getStatusMessage($response['error_code']);
-
             throw new PaymentFailedException($message, $response['error_code']);
         }
 
@@ -75,7 +71,7 @@ class IDPay extends Driver
             $this->getInvoice(),
             $response['track_id'],
             $response['payment']['track_id'],
-            $response['payment']['card_no'],
+            $response['payment']['card_no']
         );
     }
 
@@ -94,7 +90,7 @@ class IDPay extends Driver
         $mobile = $this->getInvoice()->getPhoneNumber();
         $email = $this->getInvoice()->getEmail();
 
-        if (! empty($mobile)) {
+        if (!empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
 
@@ -105,7 +101,7 @@ class IDPay extends Driver
             'phone' => $mobile,
             'mail' => $email,
             'desc' => $description,
-            'callback' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url'],
+            'callback' => $this->getInvoice()->getCallbackUrl() ?: $this->settings['callback_url']
         ];
     }
 
@@ -117,7 +113,7 @@ class IDPay extends Driver
         ];
     }
 
-    protected function getStatusMessage(int|string $statusCode): string
+    protected function getStatusMessage($statusCode): string
     {
         $messages = [
             1 => 'پرداخت انجام نشده است.',
@@ -184,7 +180,7 @@ class IDPay extends Driver
 
     protected function getPaymentUrl(): string
     {
-        return $this->paymentUrl;
+        return 'link';
     }
 
     protected function getVerificationUrl(): string
@@ -221,8 +217,8 @@ class IDPay extends Driver
         return $phoneNumber;
     }
 
-    private function setPaymentUrl(string $url): void
+    private function setLink(string $link): void
     {
-        $this->paymentUrl = $url;
+        $this->link = $link;
     }
 }

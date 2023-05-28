@@ -1,7 +1,7 @@
-[![Latest Stable Version](https://poser.pugx.org/omalizadeh/laravel-multi-payment/v)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
-[![Tests](https://github.com/omalizadeh/laravel-multi-payment/actions/workflows/tests.yml/badge.svg)](https://github.com/omalizadeh/laravel-multi-payment/actions/workflows/tests.yml)
-[![Total Downloads](https://poser.pugx.org/omalizadeh/laravel-multi-payment/downloads)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
-[![License](https://poser.pugx.org/omalizadeh/laravel-multi-payment/license)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
+[![Latest Stable Version](https://poser.pugx.org/shahrooz7216/laravel-multi-payment/v)](//packagist.org/packages/shahrooz7216/laravel-multi-payment)
+[![Tests](https://github.com/shahrooz7216/laravel-multi-payment/actions/workflows/tests.yml/badge.svg)](https://github.com/shahrooz7216/laravel-multi-payment/actions/workflows/tests.yml)
+[![Total Downloads](https://poser.pugx.org/shahrooz7216/laravel-multi-payment/downloads)](//packagist.org/packages/shahrooz7216/laravel-multi-payment)
+[![License](https://poser.pugx.org/shahrooz7216/laravel-multi-payment/license)](//packagist.org/packages/shahrooz7216/laravel-multi-payment)
 
 # Laravel Online Payment Gateway Package
 
@@ -54,9 +54,28 @@ For example:
   php artisan vendor:publish --tag=zarinpal-config
 ```
 Also you may have to add Service provider to the providers Array in app.php file in config directory:
+
+```
 'providers' => [
     shahrooz7216\MultiPayment\Providers\MultiPaymentServiceProvider::class,
 ],
+```
+
+And you should add your configuration environment variables to your .env file:
+````
+    EGHTESAD_NOVIN_TERMINAL_ID="..."
+    EGHTESAD_NOVIN_MERCHANT_ID="..."
+    EGHTESAD_NOVIN_MID="..."
+    EGHTESAD_NOVIN_USER_ID="..."
+    EGHTESAD_NOVIN_PASSWORD="..."
+    EGHTESAD_NOVIN_TOKEN=""
+    EGHTESAD_NOVIN_CALLBACK_URL="https://something.com/novin.php"
+    EGHTESAD_NOVIN_API_ENDPOINT="https://pna.shaparak.ir"
+    EGHTESAD_NOVIN_CERT_PATH="..."
+    EGHTESAD_NOVIN_CERT_USERNAME="..."
+    EGHTESAD_NOVIN_CERT_PASSWORD="..."
+    EGHTESAD_NOVIN_MODE="NoSign" 
+````
 
 
 Also you can publish view file for gateway redirection and customize it
@@ -112,7 +131,7 @@ payment was successful).
 
 ```php
     // On top...
-    use Omalizadeh\MultiPayment\Facades\PaymentGateway;
+    use shahrooz7216\MultiPayment\Facades\PaymentGateway;
 
     ////
 

@@ -1,17 +1,17 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers\Novin;
+namespace shahrooz7216\MultiPayment\Drivers\Novin;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
-use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
-use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\Receipt;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use shahrooz7216\MultiPayment\Drivers\Contracts\Driver;
+use shahrooz7216\MultiPayment\Exceptions\HttpRequestFailedException;
+use shahrooz7216\MultiPayment\Exceptions\InvalidConfigurationException;
+use shahrooz7216\MultiPayment\Exceptions\PaymentFailedException;
+use shahrooz7216\MultiPayment\Exceptions\PurchaseFailedException;
+use shahrooz7216\MultiPayment\Receipt;
+use shahrooz7216\MultiPayment\RedirectionForm;
 
 class Novin extends Driver
 {

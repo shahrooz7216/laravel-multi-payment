@@ -3,28 +3,30 @@
 return [
 
     /**
-     *  driver class namespace.
+     *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Parsian\Parsian::class,
+    'driver' => shahrooz7216\MultiPayment\Drivers\Parsian\Parsian::class,
 
     /**
-     *  soap client options.
+     *  soap client options
      */
     'soap_options' => [
         'encoding' => 'UTF-8',
     ],
 
     /**
-     *  gateway configurations.
+     *  gateway configurations
      */
     'main' => [
-        'pin' => '',
+        'pin_code' => '',
         'callback_url' => 'https://yoursite.com/path/to',
+        'callback_method' => 'POST',
         'description' => '',
     ],
+
     'other' => [
-        'pin' => '',
+        'pin_code'  => '',
         'callback_url' => 'https://yoursite.com/path/to',
         'description' => 'payment using parsian',
-    ],
+    ]
 ];

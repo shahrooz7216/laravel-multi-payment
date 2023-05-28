@@ -1,10 +1,10 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Tests;
+namespace shahrooz7216\MultiPayment\Tests;
 
 use Illuminate\Support\Facades\Http;
-use Omalizadeh\MultiPayment\Facades\PaymentGateway;
-use Omalizadeh\MultiPayment\Invoice;
+use shahrooz7216\MultiPayment\Facades\PaymentGateway;
+use shahrooz7216\MultiPayment\Invoice;
 
 class ZarinpalDriverTest extends TestCase
 {

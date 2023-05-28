@@ -1,10 +1,5 @@
 <div dir="rtl">
 
-[![Latest Stable Version](https://poser.pugx.org/omalizadeh/laravel-multi-payment/v)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
-[![Tests](https://github.com/omalizadeh/laravel-multi-payment/actions/workflows/tests.yml/badge.svg)](https://github.com/omalizadeh/laravel-multi-payment/actions/workflows/tests.yml)
-[![Total Downloads](https://poser.pugx.org/omalizadeh/laravel-multi-payment/downloads)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
-[![License](https://poser.pugx.org/omalizadeh/laravel-multi-payment/license)](//packagist.org/packages/omalizadeh/laravel-multi-payment)
-
 # پکیج پرداخت آنلاین (اتصال به درگاه بانکی) در لاراول
 
 این یک پکیج لاراول برای استفاده از درگاه های پرداخت آنلاین است که از درگاه های مختلف (بصورت درایور) با امکان تنظیم چند
@@ -42,7 +37,7 @@
 </div>
 
 ```bash 
-  composer require omalizadeh/laravel-multi-payment
+  composer require shahrooz7216/laravel-multi-payment
 ```
 
 <div dir="rtl">
@@ -74,8 +69,37 @@
 </div>
 
 ```bash
-  php artisan vendor:publish --provider=Omalizadeh\MultiPayment\Providers\MultiPaymentServiceProvider
+  php artisan vendor:publish --provider=shahrooz7216\MultiPayment\Providers\MultiPaymentServiceProvider
 ```
+
+<p dir="rtl">همچنین ممکن است نیاز باشد خط زیر را به آرایه providers که در فایل app.php که در دایرکتوری config قرار دارد اضافه کنید:
+</p>
+
+```  
+'providers' => [
+        shahrooz7216\MultiPayment\Providers\MultiPaymentServiceProvider::class,
+    ],
+```
+
+<p dir="rtl">
+همچنین شما باید تنظیمات مربوط به درگاه مورد نظر(در این مورد درگاه اقتصاد نوین) را که از بخش فنی شرکت نوین پرداخت دریافت کرده اید در فایل .env سایت خود قرار دهید:
+</p>
+
+```
+    EGHTESAD_NOVIN_TERMINAL_ID="..."
+    EGHTESAD_NOVIN_MERCHANT_ID="..."
+    EGHTESAD_NOVIN_MID="..."
+    EGHTESAD_NOVIN_USER_ID="..."
+    EGHTESAD_NOVIN_PASSWORD="..."
+    EGHTESAD_NOVIN_TOKEN=""
+    EGHTESAD_NOVIN_CALLBACK_URL="https://something.com/novin.php"
+    EGHTESAD_NOVIN_API_ENDPOINT="https://pna.shaparak.ir"
+    EGHTESAD_NOVIN_CERT_PATH="..."
+    EGHTESAD_NOVIN_CERT_USERNAME="..."
+    EGHTESAD_NOVIN_CERT_PASSWORD="..."
+    EGHTESAD_NOVIN_MODE="NoSign"
+```
+
 
 <div dir="rtl">
     
@@ -106,7 +130,7 @@
     /**
      *  driver class namespace
      */
-    'driver' => Omalizadeh\MultiPayment\Drivers\Zarinpal\Zarinpal::class,
+    'driver' => shahrooz7216\MultiPayment\Drivers\Zarinpal\Zarinpal::class,
 
      /**
      *  gateway configurations
@@ -139,7 +163,7 @@
 </div>
 
 ```php
-    use Omalizadeh\MultiPayment\Facades\PaymentGateway;
+    use shahrooz7216\MultiPayment\Facades\PaymentGateway;
     
     ////
     

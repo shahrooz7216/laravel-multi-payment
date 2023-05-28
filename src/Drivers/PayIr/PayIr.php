@@ -1,28 +1,26 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers\PayIr;
+namespace shahrooz7216\MultiPayment\Drivers\PayIr;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Omalizadeh\MultiPayment\Drivers\Contracts\Driver;
-use Omalizadeh\MultiPayment\Exceptions\HttpRequestFailedException;
-use Omalizadeh\MultiPayment\Exceptions\InvalidConfigurationException;
-use Omalizadeh\MultiPayment\Exceptions\PaymentFailedException;
-use Omalizadeh\MultiPayment\Exceptions\PurchaseFailedException;
-use Omalizadeh\MultiPayment\Receipt;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use shahrooz7216\MultiPayment\Drivers\Contracts\Driver;
+use shahrooz7216\MultiPayment\Exceptions\HttpRequestFailedException;
+use shahrooz7216\MultiPayment\Exceptions\InvalidConfigurationException;
+use shahrooz7216\MultiPayment\Exceptions\PaymentFailedException;
+use shahrooz7216\MultiPayment\Exceptions\PurchaseFailedException;
+use shahrooz7216\MultiPayment\Receipt;
+use shahrooz7216\MultiPayment\RedirectionForm;
 
 class PayIr extends Driver
 {
     public function purchase(): string
     {
-        $purchaseData = $this->getPurchaseData();
         $response = $this->callApi($this->getPurchaseUrl(), $this->getPurchaseData());
 
         if ($response['status'] !== $this->getSuccessResponseStatusCode()) {
             $message = $response['errorMessage'] ?? $this->getStatusMessage($response['errorCode']);
-
-            throw new PurchaseFailedException($message, $response['errorCode'], $purchaseData);
+            throw new PurchaseFailedException($message, $response['errorCode']);
         }
 
         $this->getInvoice()->setToken($response['token']);
@@ -52,7 +50,6 @@ class PayIr extends Driver
 
         if ($response['status'] !== $this->getSuccessResponseStatusCode()) {
             $message = $response['errorMessage'] ?? $this->getStatusMessage($response['errorCode']);
-
             throw new PaymentFailedException($message, $response['errorCode']);
         }
 
@@ -62,7 +59,7 @@ class PayIr extends Driver
             $this->getInvoice(),
             $response['transId'],
             null,
-            $response['cardNumber'],
+            $response['cardNumber']
         );
     }
 
@@ -76,7 +73,7 @@ class PayIr extends Driver
 
         $mobile = $this->getInvoice()->getPhoneNumber();
 
-        if (! empty($mobile)) {
+        if (!empty($mobile)) {
             $mobile = $this->checkPhoneNumberFormat($mobile);
         }
 
@@ -100,7 +97,7 @@ class PayIr extends Driver
         ];
     }
 
-    protected function getStatusMessage(int|string $statusCode): string
+    protected function getStatusMessage($statusCode): string
     {
         $messages = [
             '0' => 'درحال حاضر درگاه بانکی قطع شده و مشکل بزودی برطرف می شود',
@@ -132,7 +129,9 @@ class PayIr extends Driver
             '-26' => 'امکان انجام تراکنش برای این درگاه وجود ندارد',
         ];
 
-        return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : 'خطای تعریف نشده رخ داده است.';
+        $unknownError = 'خطای ناشناخته رخ داده است.';
+
+        return array_key_exists($statusCode, $messages) ? $messages[$statusCode] : $unknownError;
     }
 
     protected function getSuccessResponseStatusCode(): int
@@ -181,7 +180,6 @@ class PayIr extends Driver
         if (strlen($phoneNumber) === 12 && Str::startsWith($phoneNumber, '98')) {
             return Str::replaceFirst('98', '0', $phoneNumber);
         }
-
         if (strlen($phoneNumber) === 10 && Str::startsWith($phoneNumber, '9')) {
             return '0'.$phoneNumber;
         }

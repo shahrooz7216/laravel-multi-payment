@@ -1,10 +1,10 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Drivers\Contracts;
+namespace shahrooz7216\MultiPayment\Drivers\Contracts;
 
-use Omalizadeh\MultiPayment\Invoice;
-use Omalizadeh\MultiPayment\Receipt;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use shahrooz7216\MultiPayment\Invoice;
+use shahrooz7216\MultiPayment\Receipt;
+use shahrooz7216\MultiPayment\RedirectionForm;
 
 abstract class Driver implements PurchaseInterface
 {
@@ -38,7 +38,7 @@ abstract class Driver implements PurchaseInterface
 
     abstract protected function getVerificationData(): array;
 
-    abstract protected function getStatusMessage(int|string $statusCode): string;
+    abstract protected function getStatusMessage($statusCode): string;
 
     abstract protected function getSuccessResponseStatusCode();
 
@@ -48,7 +48,7 @@ abstract class Driver implements PurchaseInterface
 
     abstract protected function getVerificationUrl(): string;
 
-    protected function redirect(string $action, array $inputs = [], string $method = 'POST'): RedirectionForm
+    protected function redirect($action, array $inputs = [], $method = 'POST'): RedirectionForm
     {
         return new RedirectionForm($action, $inputs, $method);
     }

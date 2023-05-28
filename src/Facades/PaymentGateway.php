@@ -1,28 +1,30 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Facades;
+namespace shahrooz7216\MultiPayment\Facades;
 
 use Closure;
 use Illuminate\Support\Facades\Facade;
-use Omalizadeh\MultiPayment\Invoice;
-use Omalizadeh\MultiPayment\Receipt;
-use Omalizadeh\MultiPayment\RedirectionForm;
+use shahrooz7216\MultiPayment\Gateway;
+use shahrooz7216\MultiPayment\Invoice;
+use shahrooz7216\MultiPayment\Receipt;
+use shahrooz7216\MultiPayment\RedirectionForm;
 
 /**
  * @method static RedirectionForm purchase(Invoice $invoice, ?Closure $closure = null)
  * @method static Receipt verify(Invoice $invoice)
  * @method static array refund(Invoice $invoice)
  * @method static array unverifiedPayments()
- * @method static \Omalizadeh\MultiPayment\PaymentGateway setProvider(string $providerName, string $providerInstanceConfigKey)
- * @method static string getProviderName()
- * @method static string getProviderInstanceConfigKey()
+ * @method static Gateway setGateway(string $gateway)
+ * @method static string getGatewayName()
+ * @method static string getGatewayConfigKey()
  *
- * @see \Omalizadeh\MultiPayment\PaymentGateway
+ * @see Gateway
+ *
  */
 class PaymentGateway extends Facade
 {
-    protected static function getFacadeAccessor(): string
+    protected static function getFacadeAccessor()
     {
-        return \Omalizadeh\MultiPayment\PaymentGateway::class;
+        return Gateway::class;
     }
 }

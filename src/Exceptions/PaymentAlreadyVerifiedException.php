@@ -1,6 +1,6 @@
 <?php
 
-namespace Omalizadeh\MultiPayment\Exceptions;
+namespace shahrooz7216\MultiPayment\Exceptions;
 
 class PaymentAlreadyVerifiedException extends PaymentFailedException
 {
