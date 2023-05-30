@@ -6,14 +6,16 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use shahrooz7216\MultiPayment\Drivers\Contracts\Driver;
+use shahrooz7216\MultiPayment\Drivers\Contracts\RefundInterface;
 use shahrooz7216\MultiPayment\Exceptions\HttpRequestFailedException;
 use shahrooz7216\MultiPayment\Exceptions\InvalidConfigurationException;
 use shahrooz7216\MultiPayment\Exceptions\PaymentFailedException;
 use shahrooz7216\MultiPayment\Exceptions\PurchaseFailedException;
+use shahrooz7216\MultiPayment\Exceptions\RefundFailedException;
 use shahrooz7216\MultiPayment\Receipt;
 use shahrooz7216\MultiPayment\RedirectionForm;
 
-class Novin extends Driver
+class Novin extends Driver implements RefundInterface
 {
     protected const BANK_BUY_TRANSACTION_TYPE = 'EN_GOODS';
 
@@ -334,5 +336,37 @@ class Novin extends Driver
     private function getSignedDataFilePath(): string
     {
         return rtrim($this->settings['temp_files_dir'], '/').'/signed.txt';
+    }
+    public function refund(): array
+    {
+        $refundData = $this->getRefundPaymentData();
+
+        $response = $this->callApi(
+            $this->getRefundPaymentsUrl(),
+            Arr::except($refundData, 'authorization_token'),
+            $refundData['authorization_token']
+        );
+
+        if ((int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
+            $message = $this->getStatusMessage($response['data']['code']);
+
+            throw new RefundFailedException($message, $response['data']['code']);
+        }
+
+        return $response['data'];
+    }
+
+    protected function getRefundPaymentData(): array
+    {
+        return [
+            'WSContext' => $this->getAuthData(),
+            'Token' => request('token', $this->getInvoice()->getToken()),
+            'RefNum' => request('RefNum', $this->getInvoice()->getTransactionId()),
+        ];
+    }
+
+    protected function getRefundPaymentsUrl(): string
+    {
+        return 'https://pna.shaparak.ir/ref-payment/RestServices/mts/reverseMerchantTrans/';
     }
 }
