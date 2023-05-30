@@ -343,17 +343,14 @@ class Novin extends Driver implements RefundInterface
 
         $response = $this->callApi(
             $this->getRefundPaymentsUrl(),
-            Arr::except($refundData, 'authorization_token'),
-            $refundData['authorization_token']
+            $refundData
         );
-
-        if ((int) $response['data']['code'] !== $this->getSuccessResponseStatusCode()) {
-            $message = $this->getStatusMessage($response['data']['code']);
-
-            throw new RefundFailedException($message, $response['data']['code']);
+        if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
+            return $response;
         }
 
-        return $response['data'];
+        throw new RefundFailedException($this->getStatusMessage($response['Result']));
+
     }
 
     protected function getRefundPaymentData(): array
