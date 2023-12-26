@@ -364,7 +364,6 @@ class Novin extends Driver implements RefundInterface
 
     protected function getRefundPaymentsUrl(): string
     {
-        return 'https://pna.shaparak.ir/ref-payment/RestServices/mts/reverseTransaction/';
-//        return 'https://pna.shaparak.ir/ref-payment/RestServices/mts/reverseMerchantTrans/';
+        return $this->getBaseRestServiceUrl().'reverseMerchantTrans/';
     }
 }
