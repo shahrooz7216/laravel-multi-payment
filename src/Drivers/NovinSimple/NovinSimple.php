@@ -18,16 +18,31 @@ use shahrooz7216\MultiPayment\RedirectionForm;
 class NovinSimple extends Driver implements RefundInterface
 
 {
+    private function callApi(string $url, array $data)
+    {
+        $headers = $this->getRequestHeaders();
+
+        $response = Http::withHeaders($headers)->post($url, $data);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        throw new HttpRequestFailedException($response->body(), $response->status());
+    }
+
     public function purchase(): string
     {
-        $soapOptions = $this->getSoapOptions();
-        $soap = new SoapClient($this->getPurchaseUrl(), $soapOptions);
-        $response = $soap->SalePaymentRequest($this->getPurchaseData());
-        if($response->SalePaymentRequestResult && $response->SalePaymentRequestResult->Status === $this->getSuccessResponseStatusCode()){
-            $this->getInvoice()->setTransactionId($response->SalePaymentRequestResult->Token);
-            return  $response->SalePaymentRequestResult->Token;
+        $purchaseData = $this->getPurchaseData();
+//		throw new PurchaseFailedException($this->getStatusMessage(json_encode($purchaseData)));
+        $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
+
+        if ($response['Status'] && $response['Status'] == $this->getSuccessResponseStatusCode())
+        {
+            $this->getInvoice()->setTransactionId($response['Token']);
+            return  $response['Token'];
         }
-        throw new PaymentFailedException($this->getStatusMessage($response->SalePaymentRequestResult->Status));
+        throw new PurchaseFailedException($this->getStatusMessage($response['Status']));
     }
 
     public function pay(): RedirectionForm
@@ -38,19 +53,26 @@ class NovinSimple extends Driver implements RefundInterface
 
     public function verify(): Receipt
     {
-        if (!empty(request('status')) && request('status') !== $this->getSuccessResponseStatusCode()) {
-            throw new PaymentFailedException($this->getStatusMessage(request('status')), request('status'));
+        if (!empty(request('Status')) && strtoupper(request('Status')) !== 'OK') {
+            throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
-        $soapOptions = $this->getSoapOptions();
-        $data = $this->getVerificationData();
-        $soap = new SoapClient($this->getVerificationUrl(), $soapOptions);
-        $verificationResponse = $soap->ConfirmPayment($data);
-        $RRN=$verificationResponse->ConfirmPaymentResult->RRN;
-        $token=$verificationResponse->ConfirmPaymentResult->Token;
-        $cardNumber=$verificationResponse->ConfirmPaymentResult->CardNumberMasked;
-        if ($verificationResponse->ConfirmPaymentResult->Status === $this->getSuccessResponseStatusCode() && $RRN > 0) {
-            return new Receipt($this->getInvoice(), $RRN, $token, $cardNumber);
+
+        $verificationData = $this->getVerificationData();
+        $response = $this->callApi($this->getVerificationUrl(), $verificationData);
+
+        if ($response['Result'] == $this->getSuccessResponseStatusCode() && $response['Amount'] == $this->getInvoice()->getAmount()) {
+            $this->getInvoice()->setTransactionId(request('RefNum'));
+            $this->getInvoice()->setInvoiceId(request('ResNum'));
+
+            return new Receipt(
+                $this->getInvoice(),
+                request('RRN'),
+                request('RRN'),
+                request('CardNumberMasked'),
+            );
         }
+
+        throw new PaymentFailedException($this->getStatusMessage($response['Result']));
     }
 
     protected function getPurchaseData(): array
@@ -60,23 +82,19 @@ class NovinSimple extends Driver implements RefundInterface
         }
 
         return [
-            'requestData' => [
-                'CorporationPin' => $this->settings['pin_code'],
-                'OrderId' => $this->getInvoice()->getInvoiceId(),
-                'Amount' => $this->getInvoice()->getAmount(),
-                'CallBackUrl' => $this->settings['callback_url'],
-                'Originator' => $this->getInvoice()->getPhoneNumber()
-            ]
+            'CorporationPin' => $this->settings['pin_code'],
+            'OrderId' => $this->getInvoice()->getInvoiceId(),
+            'Amount' => $this->getInvoice()->getAmount(),
+            'CallBackUrl' => $this->settings['callback_url'],
+            'Originator' => $this->getInvoice()->getPhoneNumber()
         ];
     }
 
     protected function getVerificationData(): array
     {
         return [
-            'requestData' => [
-                'LoginAccount' => $this->settings['pin_code'],
-                'Token' => $this->getInvoice()->getTransactionId(),
-            ]
+            'CorporationPin' => $this->settings['pin_code'],
+            'Token' => $this->getInvoice()->getTransactionId()
         ];
     }
 
@@ -389,12 +407,12 @@ class NovinSimple extends Driver implements RefundInterface
 
     protected function getPurchaseUrl(): string
     {
-        return $this->getBaseRestServiceUrl().'mhipg/api/PaymentNormalSale';
+        return $this->getBaseRestServiceUrl().'mhipg/api/Payment/NormalSale';
     }
 
     protected function getPaymentUrl(): string
     {
-        return 'https://pna.shaparak.ir/mhui/home/index/'.$this->getInvoice()->getTransactionId();
+        return $this->getBaseRestServiceUrl().'mhui/home/index/'.$this->getInvoice()->getTransactionId();
     }
 
     protected function getVerificationUrl(): string
@@ -412,27 +430,23 @@ class NovinSimple extends Driver implements RefundInterface
         return config('gateway_novin_simple.request_headers');
     }
 
-    private function getSoapOptions(): array
-    {
-        return config('gateway_novin_simple.soap_options', [
-            'encoding' => 'UTF-8'
-        ]);
-    }
-
     public function refund(): array
     {
-        $refundData = $this->getRefundPaymentData();
-
-        $response = $this->callApi(
-            $this->getRefundPaymentsUrl(),
-            $refundData
-        );
-        if ($response['Result'] == $this->getSuccessResponseStatusCode()) {
-            return $response;
+        if (!empty(request('Status')) && strtoupper(request('Status')) !== 'OK') {
+            throw new RefundFailedException($this->getStatusMessage(request('Status')));
         }
 
-        throw new RefundFailedException($this->getStatusMessage($response['Result']));
+        $refundPaymentData = $this->getRefundPaymentData();
+        $response = $this->callApi($this->getRefundPaymentsUrl(), $refundPaymentData);
 
+        if ($response['Status'] == $this->getSuccessResponseStatusCode()) {
+
+            $token=$response['Token'];
+            $message=$response['Message'];
+            return $this->getStatusMessage($this->getSuccessResponseStatusCode());
+        }
+
+        throw new RefundFailedException($this->getStatusMessage($response['Status']));
     }
 
     protected function getRefundPaymentData(): array

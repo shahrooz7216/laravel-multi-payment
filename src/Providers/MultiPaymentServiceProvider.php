@@ -74,7 +74,7 @@ class MultiPaymentServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../../config/gateway_novin_simple.php' => config_path('gateway_novin_simple.php')
             ], 'novin-simple-config');
-            
+
         }
     }
 }
