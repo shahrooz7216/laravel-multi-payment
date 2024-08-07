@@ -18,7 +18,6 @@ use shahrooz7216\MultiPayment\RedirectionForm;
 class NovinSimple extends Driver implements RefundInterface
 
 {
-
     public function purchase(): string
     {
         $soapOptions = $this->getSoapOptions();
