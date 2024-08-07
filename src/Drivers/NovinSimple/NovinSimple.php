@@ -427,7 +427,10 @@ class NovinSimple extends Driver implements RefundInterface
 
     private function getRequestHeaders(): array
     {
-        return config('gateway_novin_simple.request_headers');
+        return config('gateway_novin_simple.request_headers',[
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ]);
     }
 
     public function refund(): array
