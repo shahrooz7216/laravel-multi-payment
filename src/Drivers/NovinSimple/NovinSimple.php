@@ -55,7 +55,6 @@ class NovinSimple extends Driver implements RefundInterface
 
     protected function getPurchaseData(): array
     {
-
         if (empty($this->settings['pin_code'])) {
             throw new InvalidConfigurationException('pin_code has not been set.');
         }
