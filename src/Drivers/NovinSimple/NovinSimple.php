@@ -34,15 +34,15 @@ class NovinSimple extends Driver implements RefundInterface
     public function purchase(): string
     {
         $purchaseData = $this->getPurchaseData();
-//		throw new PurchaseFailedException($this->getStatusMessage(json_encode($purchaseData)));
+        //		throw new PurchaseFailedException($this->getStatusMessage(json_encode($purchaseData)));
         $response = $this->callApi($this->getPurchaseUrl(), $purchaseData);
 
-        if ($response['Status'] && $response['Status'] == $this->getSuccessResponseStatusCode())
+        if (isset($response['status']) && $response['status'] == $this->getSuccessResponseStatusCode())
         {
-            $this->getInvoice()->setTransactionId($response['Token']);
-            return  $response['Token'];
+            $this->getInvoice()->setTransactionId($response['token']);
+            return  $response['token'];
         }
-        throw new PurchaseFailedException($this->getStatusMessage($response['Status']));
+        throw new PurchaseFailedException($this->getStatusMessage($response['status']));
     }
 
     public function pay(): RedirectionForm
