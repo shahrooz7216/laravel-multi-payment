@@ -22,6 +22,11 @@ class NovinSimple extends Driver implements RefundInterface
     {
         $headers = $this->getRequestHeaders();
 
+        // with proxy:
+//        $response = Http::withHeaders($headers)->withOptions(['proxy' => 'http://username:password@IP:Port'])->post($url, $data);
+//        $response = Http::withHeaders($headers)->withOptions(['proxy' => 'http://IP:port'])>post($url, $data);
+
+        // without proxy
         $response = Http::withHeaders($headers)->post($url, $data);
 
         if ($response->successful()) {
@@ -53,22 +58,21 @@ class NovinSimple extends Driver implements RefundInterface
 
     public function verify(): Receipt
     {
-        if (!empty(request('Status')) && strtoupper(request('Status')) !== 'OK') {
+        if (!empty(request('status')) && request('status') !== $this->getSuccessResponseStatusCode()) {
             throw new PaymentFailedException('کاربر از انجام تراکنش منصرف شده است.');
         }
 
         $verificationData = $this->getVerificationData();
         $response = $this->callApi($this->getVerificationUrl(), $verificationData);
 
-        if ($response['Result'] == $this->getSuccessResponseStatusCode() && $response['Amount'] == $this->getInvoice()->getAmount()) {
+        if ($response['status'] == $this->getSuccessResponseStatusCode()) {
             $this->getInvoice()->setTransactionId(request('RefNum'));
             $this->getInvoice()->setInvoiceId(request('ResNum'));
-
             return new Receipt(
                 $this->getInvoice(),
-                request('RRN'),
-                request('RRN'),
-                request('CardNumberMasked'),
+                request('TraceNo'),
+                request('CustomerRefNum'),
+                request('CardMaskPan'),
             );
         }
 
@@ -435,21 +439,18 @@ class NovinSimple extends Driver implements RefundInterface
 
     public function refund(): array
     {
-        if (!empty(request('Status')) && strtoupper(request('Status')) !== 'OK') {
-            throw new RefundFailedException($this->getStatusMessage(request('Status')));
+        if (!empty(request('status')) && strtoupper(request('status')) !== 'OK') {
+            throw new RefundFailedException($this->getStatusMessage(request('status')));
         }
 
         $refundPaymentData = $this->getRefundPaymentData();
         $response = $this->callApi($this->getRefundPaymentsUrl(), $refundPaymentData);
-
-        if ($response['Status'] == $this->getSuccessResponseStatusCode()) {
-
-            $token=$response['Token'];
-            $message=$response['Message'];
-            return $this->getStatusMessage($this->getSuccessResponseStatusCode());
+        if ($response['status'] == $this->getSuccessResponseStatusCode())
+        {
+            return $response;
         }
 
-        throw new RefundFailedException($this->getStatusMessage($response['Status']));
+        throw new RefundFailedException($this->getStatusMessage($response['status']));
     }
 
     protected function getRefundPaymentData(): array
